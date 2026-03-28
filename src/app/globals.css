@@ -1,68 +1,106 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 @import "tailwindcss";
 
 @layer base {
   :root {
-    --background: 0 0% 7%;
-    --foreground: 0 0% 95%;
+    --background: 0 0% 0%; /* Pure Black */
+    --foreground: 0 0% 100%; /* Pure White */
 
-    --card: 0 0% 10%;
-    --card-foreground: 0 0% 95%;
-    --card-elevated: 0 0% 13%;
+    --card: 0 0% 4%;
+    --card-foreground: 0 0% 100%;
+    --card-elevated: 0 0% 7%; /* Dark Gray */
 
-    --popover: 0 0% 10%;
-    --popover-foreground: 0 0% 95%;
+    --popover: 0 0% 4%;
+    --popover-foreground: 0 0% 100%;
 
-    --primary: 0 0% 95%;
-    --primary-foreground: 0 0% 7%;
+    --primary: 0 0% 100%;
+    --primary-foreground: 0 0% 0%;
 
-    --secondary: 0 0% 15%;
-    --secondary-foreground: 0 0% 80%;
+    --secondary: 0 0% 64%; /* Muted Gray */
+    --secondary-foreground: 0 0% 100%;
 
-    --muted: 0 0% 18%;
-    --muted-foreground: 0 0% 55%;
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 64%;
 
-    --accent: 142 60% 45%;
+    --accent: 142 60% 45%; /* Muted Green strictly kept for indicators */
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 62% 50%;
+    --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 0 0% 18%;
+    --border: 0 0% 15%;
     --input: 0 0% 15%;
     --ring: 142 60% 45%;
 
     --radius: 0.75rem;
 
-    --glass-bg: 0 0% 12% / 0.6;
-    --glass-border: 0 0% 25% / 0.3;
+    --glass-bg: 0 0% 4% / 0.7;
+    --glass-border: 0 0% 20% / 0.4;
 
-    --font-display: 'Space Grotesk', sans-serif;
-    --font-body: 'Inter', sans-serif;
-
-    --sidebar-background: 0 0% 8%;
-    --sidebar-foreground: 0 0% 80%;
-    --sidebar-primary: 0 0% 95%;
-    --sidebar-primary-foreground: 0 0% 7%;
-    --sidebar-accent: 0 0% 15%;
-    --sidebar-accent-foreground: 0 0% 95%;
-    --sidebar-border: 0 0% 18%;
-    --sidebar-ring: 142 60% 45%;
+    --font-sans: 'Inter', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
   }
 }
 
 @layer base {
   * {
-    border-color: hsl(var(--border) / 0.1);
+    border-color: hsl(var(--border) / 0.3);
   }
   body {
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
-    font-family: var(--font-body);
+    font-family: var(--font-sans);
+    line-height: 1.6;
+    font-style: normal;
   }
-  h1, h2, h3, h4, h5, h6 {
-    font-family: var(--font-display);
+
+  /* Structural Global Normalization */
+  h1, h2, h3, h4, h5, h6, p, span, div {
+    font-style: normal !important;
+    text-transform: none !important;
+  }
+
+  h1 {
+    font-size: clamp(3rem, 6vw, 5rem) !important;
+    font-weight: 800 !important;
+    letter-spacing: -0.04em !important;
+    line-height: 1 !important;
+    font-family: var(--font-sans) !important;
+  }
+
+  h2 {
+    font-size: clamp(2rem, 4vw, 3rem) !important;
+    font-weight: 700 !important;
+    letter-spacing: -0.03em !important;
+    line-height: 1.1 !important;
+    font-family: var(--font-sans) !important;
+  }
+
+  h3 {
+    font-size: clamp(1.25rem, 2vw, 1.75rem) !important;
+    font-weight: 600 !important;
+    letter-spacing: -0.02em !important;
+    line-height: 1.2 !important;
+    font-family: var(--font-sans) !important;
+  }
+
+  p {
+    font-size: 1rem !important;
+    font-weight: 400 !important;
+    letter-spacing: normal !important;
+    line-height: 1.6 !important;
+    color: hsl(var(--foreground) / 0.8) !important;
+  }
+
+  /* Captions */
+  .text-\[10px\], .text-\[11px\], .text-\[8px\], .text-\[9px\], 
+  small, .caption {
+    font-size: 0.875rem !important;
+    font-weight: 500 !important;
+    color: hsl(var(--muted-foreground)) !important;
+    letter-spacing: 0em !important;
+    text-transform: none !important;
   }
 }
 
@@ -74,13 +112,13 @@
     border: 1px solid hsla(var(--glass-border));
   }
   .glass-card {
-    background: hsla(0, 0%, 12%, 0.5);
+    background: hsla(0, 0%, 7%, 0.6);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    border: 1px solid hsla(0, 0%, 25%, 0.2);
+    border: 1px solid hsla(0, 0%, 20%, 0.3);
   }
   .live-glow {
-    box-shadow: 0 0 8px 2px hsl(142 60% 45% / 0.5);
+    box-shadow: 0 0 12px 2px hsl(var(--accent) / 0.5);
   }
   .card-hover {
     transition-property: all;
@@ -88,11 +126,14 @@
     transition-duration: 300ms;
   }
   .card-hover:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 40px -12px hsla(0, 0%, 0%, 0.5);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 40px -10px hsla(0, 0%, 0%, 0.4);
+  }
+  .shadow-luxury {
+    box-shadow: 0 8px 30px rgba(0,0,0,0.3), 0 0 4px rgba(255,255,255,0.03) !important;
   }
   .text-gradient {
-    background: linear-gradient(135deg, hsl(0 0% 100%), hsl(0 0% 60%));
+    background: linear-gradient(135deg, hsl(0 0% 100%), hsl(0 0% 70%));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;

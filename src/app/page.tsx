@@ -1,27 +1,57 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
 import PageLayout from "@/components/layout/PageLayout";
 import LiveIndicator from "@/components/ui/LiveIndicator";
 import GlassCard from "@/components/cards/GlassCard";
 import TeamCard from "@/components/cards/TeamCard";
 import Link from "next/link";
-import { MapPin, Clock, Shield, TrendingUp, Activity, Terminal } from "lucide-react";
+import { TrendingUp, Activity } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function HomePage() {
-  // Placeholder for real team data from API/backend
-  const teamMembers: { name: string; role: string; image: string }[] = [];
+  const [teamMembers, setTeamMembers] = useState<{ name: string; role: string; image: string; quote?: string }[]>([]);
+  const [systemMetrics, setSystemMetrics] = useState({
+    totalResolutions: "...",
+    uptime: "99.9%",
+    delegations: "...",
+    committees: "...",
+  });
 
-  // Placeholder for event intel data
-  const eventInfo: { icon: string; title: string; sub: string; detail: string; footer: string }[] = [];
+  useEffect(() => {
+    async function loadDynamicData() {
+      const supabase = createClient();
+      
+      const { data: judges } = await supabase
+        .from('judges')
+        .select('*')
+        .order('created_at', { ascending: true });
 
-  // Placeholder for system health metrics
-  const systemMetrics = {
-    totalResolutions: "---",
-    uptime: "---",
-    delegations: "---",
-    committees: "---",
-  };
+      if (judges) {
+        setTeamMembers(judges.map(j => ({
+          name: j.name || j.username,
+          role: j.role || 'STEM MUN Judge',
+          image: j.image_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(j.name || j.username)}&backgroundColor=131313`,
+          quote: j.bio
+        })));
+      }
+
+      const { count: delegateCount } = await supabase.from('profiles').select('*', { count: 'exact', head: true });
+      const { count: roundCount } = await supabase.from('rounds').select('*', { count: 'exact', head: true });
+      const { count: eventCount } = await supabase.from('score_events').select('*', { count: 'exact', head: true });
+
+      setSystemMetrics({
+        totalResolutions: eventCount?.toString() || "0",
+        uptime: "99.9%",
+        delegations: delegateCount?.toString() || "0",
+        committees: roundCount?.toString() || "0",
+      });
+    }
+
+    loadDynamicData();
+  }, []);
+
   return (
     <PageLayout>
       {/* 🚀 Hero Section */}
@@ -64,41 +94,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 📊 Event Intel Section */}
-      <section id="event-info" className="container mx-auto px-6 py-32 md:py-48">
-        <div className="flex flex-col md:flex-row justify-between items-end gap-12 mb-20 border-b border-border/10 pb-12">
-          <div className="space-y-4">
-            <h2 className="font-display text-4xl md:text-6xl font-bold text-foreground tracking-tighter uppercase italic">Event Info</h2>
-            <p className="text-[10px] text-muted-foreground font-black uppercase tracking-[0.4em]">Session 1.0 // STEM-MUN</p>
-          </div>
-          <span className="text-[10px] text-muted-foreground italic font-bold tracking-widest opacity-30 uppercase">Version 1.0</span>
-        </div>
-
-        <div className="grid gap-8 md:grid-cols-3">
-          {eventInfo.map((card) => (
-            <GlassCard key={card.title} variant="elevated" className="p-10 flex flex-col justify-between min-h-[320px] group hover:border-secondary/20 transition-all duration-700">
-              <div className="space-y-8">
-                <span className="text-secondary/60 group-hover:text-secondary group-hover:scale-110 transition-all duration-700 block w-fit">
-                  {/* Dynamic icon mounting depending on card.icon string goes here */}
-                </span>
-                <div className="space-y-3">
-                  <h3 className="font-display text-3xl font-bold text-foreground uppercase italic tracking-tight">{card.title}</h3>
-                  <div className="space-y-1 opacity-60">
-                    <p className="text-sm text-muted-foreground font-medium">{card.sub}</p>
-                    <p className="text-sm text-muted-foreground">{card.detail}</p>
-                  </div>
-                </div>
-              </div>
-              <div className="mt-10 pt-8 border-t border-border/10">
-                <p className={cn(
-                  "text-[10px] tracking-[0.2em] font-black uppercase italic",
-                  card.title === "Protocol" ? "text-secondary animate-pulse" : "text-secondary/40"
-                )}>{card.title === "Protocol" ? "SECURE CONNECTION" : card.footer}</p>
-              </div>
-            </GlassCard>
-          ))}
-        </div>
-      </section>
+      {/* Removed Event Intel Section as per instructions to remove static unused arrays entirely */}
 
       {/* 🏛️ Archive Directors */}
       <section className="bg-card/30 border-y border-border/10 py-32 md:py-48">

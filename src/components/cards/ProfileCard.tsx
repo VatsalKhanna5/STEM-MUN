@@ -12,26 +12,26 @@ interface ProfileCardProps {
     status?: string;
   };
   selected?: boolean;
+  onClick?: () => void;
 }
 
-const ProfileCard = ({ delegate, selected }: ProfileCardProps) => (
-  <Link href={`/profile/${delegate.id}`}>
+const ProfileCard = ({ delegate, selected, onClick }: ProfileCardProps) => {
+  const content = (
     <div
+      onClick={onClick}
       className={cn(
-        "flex items-center gap-4 rounded-2xl p-4 transition-all duration-300 cursor-pointer border active-scale",
+        "flex items-center gap-4 rounded-3xl p-4 transition-all duration-500 cursor-pointer border active-scale group",
         selected
           ? "bg-secondary/10 border-secondary/30 shadow-luxury"
-          : "bg-card border-border hover:bg-secondary/5 hover:border-foreground/10"
+          : "bg-surface-container-low border-white/5 hover:bg-surface-container-high hover:border-white/10"
       )}
     >
-      <div className="relative">
+      <div className="relative shrink-0">
         <img
-          src={delegate.image_url || "/placeholder.svg"}
+          src={delegate.image_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(delegate.name)}&backgroundColor=131313`}
           alt={delegate.name}
-          className="h-10 w-10 rounded-full object-cover grayscale opacity-80"
+          className="h-12 w-12 rounded-full object-cover grayscale opacity-60 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-700 shadow-luxury border border-white/5"
           loading="lazy"
-          width={40}
-          height={40}
         />
         {delegate.status === "speaking" && (
           <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-secondary border-2 border-background live-glow" />
@@ -42,7 +42,10 @@ const ProfileCard = ({ delegate, selected }: ProfileCardProps) => (
         <p className="text-[9px] tracking-wider uppercase text-muted-foreground truncate italic">{delegate.country || "DELEGATE"}</p>
       </div>
     </div>
-  </Link>
-);
+  );
+
+  if (onClick) return content;
+  return <Link href={`/profile/${delegate.id}`}>{content}</Link>;
+};
 
 export default ProfileCard;

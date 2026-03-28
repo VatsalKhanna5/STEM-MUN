@@ -13,6 +13,7 @@ interface RecentEvent {
   created_at: string;
   profiles: {
     name: string;
+    image_url: string;
   };
 }
 
@@ -56,7 +57,8 @@ export default function RecentEventsAudit({ judgeId }: { judgeId: string }) {
         value,
         created_at,
         profiles (
-          name
+          name,
+          image_url
         )
       `)
       .eq("judge_id", judgeId)
@@ -96,8 +98,15 @@ export default function RecentEventsAudit({ judgeId }: { judgeId: string }) {
               className="flex items-center justify-between group/item"
             >
               <div className="flex items-center gap-5">
-                <div className="w-8 h-8 rounded-full bg-surface-container-high border border-white/5 flex items-center justify-center group-hover/item:border-secondary/20 transition-all duration-700 active-scale">
-                   {getIcon(event.type)}
+                <div className="relative w-8 h-8 rounded-full border border-white/5 flex items-center justify-center group-hover/item:border-secondary/20 transition-all duration-700 active-scale overflow-hidden shadow-luxury">
+                   {event.profiles?.image_url ? (
+                     <img src={event.profiles.image_url} alt={event.profiles.name} className="w-full h-full object-cover" />
+                   ) : (
+                     getIcon(event.type)
+                   )}
+                   <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-background rounded-full flex items-center justify-center border border-white/5">
+                     {getIcon(event.type)}
+                   </div>
                 </div>
                 <div className="flex flex-col gap-1">
                     <span className="font-headline font-black text-[13px] uppercase italic tracking-tighter text-white group-hover/item:text-secondary transition-colors">{event.profiles?.name}</span>

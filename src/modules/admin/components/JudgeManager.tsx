@@ -11,6 +11,10 @@ interface Judge {
   id: string;
   username: string;
   password_hash: string;
+  name?: string;
+  image_url?: string;
+  role?: string;
+  bio?: string;
   created_at: string;
 }
 
@@ -22,7 +26,12 @@ export default function JudgeManager() {
   // Form state
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [name, setName] = useState("");
+  const [imageUrl, setImageUrl] = useState("");
+  const [role, setRole] = useState("");
+  const [bio, setBio] = useState("");
   const [error, setError] = useState("");
+  const [imageFile, setImageFile] = useState<File | null>(null);
 
   const [adding, setAdding] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -52,9 +61,36 @@ export default function JudgeManager() {
     if (!username || !password) return;
     setAdding(true);
 
+    let finalImageUrl = imageUrl.trim() || null;
+
+    if (imageFile) {
+      const fileExt = imageFile.name.split('.').pop();
+      const fileName = `${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${fileExt}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('judge-images')
+        .upload(fileName, imageFile);
+
+      if (uploadError) {
+        setError("Error uploading image: " + uploadError.message);
+        setAdding(false);
+        return;
+      }
+      
+      const { data: publicUrlData } = supabase.storage
+        .from('judge-images')
+        .getPublicUrl(fileName);
+
+      finalImageUrl = publicUrlData.publicUrl;
+    }
+
     const newJudge = {
       username: username.toLowerCase().trim(),
       password_hash: password, 
+      name: name.trim() || null,
+      image_url: finalImageUrl,
+      role: role.trim() || null,
+      bio: bio.trim() || null,
     };
 
     const { data, error: insertError } = await supabase
@@ -70,6 +106,11 @@ export default function JudgeManager() {
         setSuccess(false);
         setUsername("");
         setPassword("");
+        setName("");
+        setImageUrl("");
+        setImageFile(null);
+        setRole("");
+        setBio("");
       }, 1000);
     } else {
       setError(insertError?.message || "AUTHORIZATION_FAILURE");
@@ -163,6 +204,62 @@ export default function JudgeManager() {
                         />
                       </div>
                     </div>
+                    <div className="space-y-4">
+                      <label className="font-display text-[9px] text-muted-foreground/40 uppercase font-black italic tracking-widest">DISPLAY NAME</label>
+                      <input
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        placeholder="e.g. John Doe"
+                        className="w-full bg-card-elevated/50 border border-border/10 p-6 rounded-xl text-[12px] uppercase tracking-widest focus:border-foreground/20 outline-none transition-all placeholder:text-muted-foreground/5 font-bold font-display"
+                      />
+                    </div>
+                    <div className="space-y-4">
+                      <label className="font-display text-[9px] text-muted-foreground/40 uppercase font-black italic tracking-widest">JUDGE AVATAR</label>
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
+                        {imageUrl || imageFile ? (
+                          <img 
+                            src={imageFile ? URL.createObjectURL(imageFile) : imageUrl} 
+                            alt="Preview" 
+                            className="w-16 h-16 rounded-full object-cover border border-border/10 shadow-luxury" 
+                          />
+                        ) : (
+                          <div className="w-16 h-16 rounded-full bg-card-elevated/50 flex items-center justify-center border border-border/10 shadow-luxury">
+                            <ShieldCheck className="text-muted-foreground/20" size={24} />
+                          </div>
+                        )}
+                        <div className="flex-1 w-full">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => {
+                              if (e.target.files && e.target.files[0]) {
+                                setImageFile(e.target.files[0]);
+                                setImageUrl("");
+                              }
+                            }}
+                            className="w-full bg-card-elevated/50 border border-border/10 p-3 rounded-xl text-[12px] focus:border-foreground/20 outline-none transition-all font-display file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-[10px] file:font-black file:uppercase file:tracking-widest file:bg-foreground file:text-background hover:file:scale-105 file:transition-transform file:cursor-pointer cursor-pointer font-bold text-muted-foreground/60"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    <div className="space-y-4">
+                      <label className="font-display text-[9px] text-muted-foreground/40 uppercase font-black italic tracking-widest">ROLE</label>
+                      <input
+                        value={role}
+                        onChange={(e) => setRole(e.target.value)}
+                        placeholder="e.g. Head Judge"
+                        className="w-full bg-card-elevated/50 border border-border/10 p-6 rounded-xl text-[12px] uppercase tracking-widest focus:border-foreground/20 outline-none transition-all placeholder:text-muted-foreground/5 font-bold font-display"
+                      />
+                    </div>
+                    <div className="space-y-4">
+                      <label className="font-display text-[9px] text-muted-foreground/40 uppercase font-black italic tracking-widest">BIO</label>
+                      <textarea
+                        value={bio}
+                        onChange={(e) => setBio(e.target.value)}
+                        placeholder="Short bio..."
+                        className="w-full bg-card-elevated/50 border border-border/10 p-6 rounded-xl text-[12px] uppercase tracking-widest focus:border-foreground/20 outline-none transition-all placeholder:text-muted-foreground/5 font-bold font-display h-24 resize-none"
+                      />
+                    </div>
                   </div>
                   
                   <AnimatePresence>
@@ -204,10 +301,14 @@ export default function JudgeManager() {
             >
               <div className="flex items-center gap-10">
                 <div className="p-5 bg-card rounded-2xl text-muted-foreground/20 group-hover:text-secondary group-hover:bg-secondary/5 transition-all duration-700 shadow-luxury overflow-hidden">
-                  <ShieldCheck size={28} />
+                  {judge.image_url ? (
+                    <img src={judge.image_url} alt={judge.name || judge.username} className="w-8 h-8 rounded-full object-cover" />
+                  ) : (
+                    <ShieldCheck size={28} />
+                  )}
                 </div>
                 <div className="flex flex-col gap-2">
-                  <span className="font-display font-bold text-2xl tracking-tighter uppercase italic text-foreground">{judge.username}</span>
+                  <span className="font-display font-bold text-2xl tracking-tighter uppercase italic text-foreground">{judge.name || judge.username}</span>
                   <div className="flex items-center gap-3">
                     <div className="w-2 h-2 rounded-full bg-secondary pulse-secondary" />
                     <span className="font-display text-secondary text-[8px] font-black italic uppercase tracking-widest">ACTIVE SESSION</span>

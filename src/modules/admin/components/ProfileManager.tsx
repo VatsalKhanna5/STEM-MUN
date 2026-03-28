@@ -25,7 +25,9 @@ export default function ProfileManager() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [imageUrl, setImageUrl] = useState("");
+  const [imageFile, setImageFile] = useState<File | null>(null);
   const [tags, setTags] = useState("");
+  const [error, setError] = useState("");
 
   const [success, setSuccess] = useState(false);
   const [adding, setAdding] = useState(false);
@@ -55,10 +57,33 @@ export default function ProfileManager() {
     setAdding(true);
     setSuccess(false);
 
+    let finalImageUrl = imageUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(name)}&backgroundColor=131313`;
+
+    if (imageFile) {
+      const fileExt = imageFile.name.split('.').pop();
+      const fileName = `${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${fileExt}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('profile-images')
+        .upload(fileName, imageFile);
+
+      if (uploadError) {
+        setError("Error uploading image: " + uploadError.message);
+        setAdding(false);
+        return;
+      }
+      
+      const { data: publicUrlData } = supabase.storage
+        .from('profile-images')
+        .getPublicUrl(fileName);
+
+      finalImageUrl = publicUrlData.publicUrl;
+    }
+
     const newProfile = {
       name,
       description,
-      image_url: imageUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(name)}&backgroundColor=131313`,
+      image_url: finalImageUrl,
       tags: tags.split(",").map(t => t.trim()).filter(Boolean),
     };
 
@@ -95,7 +120,9 @@ export default function ProfileManager() {
     setName("");
     setDescription("");
     setImageUrl("");
+    setImageFile(null);
     setTags("");
+    setError("");
   }
 
   const filteredProfiles = profiles.filter(p => 
@@ -174,15 +201,32 @@ export default function ProfileManager() {
                         />
                       </div>
                       <div className="space-y-4">
-                        <label className="font-display text-[9px] text-muted-foreground/40 uppercase font-black italic tracking-widest">IMAGE URL</label>
-                        <div className="relative group">
-                           <ImageIcon className="absolute left-6 top-1/2 -translate-y-1/2 text-muted-foreground/20 group-focus-within:text-secondary transition-colors" size={16} />
-                           <input
-                              value={imageUrl}
-                              onChange={(e) => setImageUrl(e.target.value)}
-                              placeholder="https://images.unsplash.com/..."
-                              className="w-full bg-card-elevated/50 border border-border/10 p-6 pl-16 rounded-xl text-[12px] uppercase tracking-widest focus:border-foreground/20 outline-none transition-all placeholder:text-muted-foreground/5 font-bold font-display"
-                           />
+                        <label className="font-display text-[9px] text-muted-foreground/40 uppercase font-black italic tracking-widest">DELEGATE AVATAR</label>
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
+                          {imageUrl || imageFile ? (
+                            <img 
+                              src={imageFile ? URL.createObjectURL(imageFile) : imageUrl} 
+                              alt="Preview" 
+                              className="w-16 h-16 rounded-full object-cover border border-border/10 shadow-luxury grayscale" 
+                            />
+                          ) : (
+                            <div className="w-16 h-16 rounded-full bg-card-elevated/50 flex items-center justify-center border border-border/10 shadow-luxury">
+                              <ImageIcon className="text-muted-foreground/20" size={24} />
+                            </div>
+                          )}
+                          <div className="flex-1 w-full">
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={(e) => {
+                                if (e.target.files && e.target.files[0]) {
+                                  setImageFile(e.target.files[0]);
+                                  setImageUrl("");
+                                }
+                              }}
+                              className="w-full bg-card-elevated/50 border border-border/10 p-3 rounded-xl text-[12px] focus:border-foreground/20 outline-none transition-all font-display file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-[10px] file:font-black file:uppercase file:tracking-widest file:bg-foreground file:text-background hover:file:scale-105 file:transition-transform file:cursor-pointer cursor-pointer font-bold text-muted-foreground/60"
+                            />
+                          </div>
                         </div>
                       </div>
                       <div className="space-y-4">
@@ -204,6 +248,19 @@ export default function ProfileManager() {
                         />
                       </div>
                     </div>
+                    
+                    <AnimatePresence>
+                      {error && (
+                        <motion.p 
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          className="text-destructive text-[9px] uppercase font-black text-center tracking-[0.4em] italic mt-4"
+                        >
+                          {error}
+                        </motion.p>
+                      )}
+                    </AnimatePresence>
+
                     <button
                       type="submit"
                       disabled={adding}

@@ -26,6 +26,11 @@ interface ScoreEvent {
   value: number;
   remark: string;
   created_at: string;
+  judges?: {
+    name?: string;
+    username: string;
+    image_url?: string;
+  } | null;
 }
 
 export default function ProfileDetailPage() {
@@ -51,7 +56,10 @@ export default function ProfileDetailPage() {
 
     const { data: eventData } = await supabase
       .from("score_events")
-      .select("*")
+      .select(`
+        *,
+        judges (name, username, image_url)
+      `)
       .eq("profile_id", id)
       .order("created_at", { ascending: false });
 
@@ -199,13 +207,27 @@ export default function ProfileDetailPage() {
                 </div>
                 <div className="flex-1 pb-16 border-b border-white/5 group-last:border-none space-y-6">
                   <div className="flex justify-between items-start">
-                    <div className="space-y-2">
-                      <h4 className="font-headline font-bold text-2xl uppercase tracking-tight text-foreground/60 group-hover:text-white transition-all">
-                        {event.event_type?.replace(/_/g, ' ') || 'Score Change'}
-                      </h4>
-                      <div className="flex items-center gap-3">
-                        <Calendar className="w-3 h-3 text-foreground/20" />
-                        <span className="tracking-luxury text-[7px] text-foreground/20">Round {event.round_number}</span>
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-4">
+                        {event.judges?.image_url ? (
+                          <img src={event.judges.image_url} alt={event.judges.name || event.judges.username} className="w-8 h-8 rounded-full object-cover border border-white/10" />
+                        ) : (
+                          <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center border border-white/10">
+                            <Shield className="w-4 h-4 text-white/40" />
+                          </div>
+                        )}
+                        <span className="tracking-luxury text-[8px] text-foreground/40 font-black italic">
+                          JUDGE: {event.judges?.name || event.judges?.username || "UNKNOWN"}
+                        </span>
+                      </div>
+                      <div className="space-y-2">
+                        <h4 className="font-headline font-bold text-2xl uppercase tracking-tight text-foreground/60 group-hover:text-white transition-all">
+                          {event.event_type?.replace(/_/g, ' ') || 'Score Change'}
+                        </h4>
+                        <div className="flex items-center gap-3">
+                          <Calendar className="w-3 h-3 text-foreground/20" />
+                          <span className="tracking-luxury text-[7px] text-foreground/20">Round {event.round_number}</span>
+                        </div>
                       </div>
                     </div>
                     <span className="font-headline font-black text-5xl text-secondary tabular-nums tracking-tighter italic">+{event.value}</span>

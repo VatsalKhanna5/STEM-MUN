@@ -23,6 +23,8 @@ import LiveIndicator from "@/components/ui/LiveIndicator";
 interface JudgeSession {
   id: string;
   username: string;
+  name?: string;
+  image_url?: string;
 }
 
 interface Profile {
@@ -67,16 +69,29 @@ export default function JudgeDashboardPage() {
   useEffect(() => {
     const session = localStorage.getItem("stem_mun_judge");
     if (session) {
-      setJudge(JSON.parse(session));
-      fetchData();
+      const parsed = JSON.parse(session);
+      setJudge(parsed);
+      fetchData(parsed.id);
     } else {
       router.push("/judge/login"); 
     }
   }, [router]);
 
-  async function fetchData() {
+  async function fetchData(judgeId: string) {
     setLoading(true);
     
+    // Fetch detailed judge info
+    const { data: judgeData } = await supabase
+      .from("judges")
+      .select("id, username, name, image_url")
+      .eq("id", judgeId)
+      .maybeSingle();
+      
+    if (judgeData) {
+      setJudge(judgeData);
+      localStorage.setItem("stem_mun_judge", JSON.stringify(judgeData));
+    }
+
     const { data: roundData } = await supabase
       .from("rounds")
       .select("id, name")
@@ -171,9 +186,7 @@ export default function JudgeDashboardPage() {
 
             <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-2 hide-scrollbar">
               {filteredProfiles.map((p) => (
-                <div key={p.id} onClick={() => setSelectedProfileId(p.id)}>
-                   <ProfileCard delegate={p} selected={p.id === selectedProfileId} />
-                </div>
+                <ProfileCard key={p.id} delegate={p} selected={p.id === selectedProfileId} onClick={() => setSelectedProfileId(p.id)} />
               ))}
               {filteredProfiles.length === 0 && (
                 <div className="py-20 text-center opacity-20">
@@ -198,10 +211,19 @@ export default function JudgeDashboardPage() {
                   <header className="space-y-8">
                     <LiveIndicator label="Live Evaluation" />
                     <div className="flex flex-col md:flex-row justify-between items-end gap-8">
-                      <div className="space-y-4">
-                        <h1 className="font-display text-5xl md:text-7xl font-bold text-foreground leading-[0.85] uppercase italic tracking-tighter">
-                          {selectedProfile.name.split(" ").map((w, i) => <span key={i} className="block">{w}</span>)}
-                        </h1>
+                      <div className="space-y-6">
+                        <div className="flex items-center gap-6">
+                          {selectedProfile.image_url ? (
+                            <img src={selectedProfile.image_url} alt={selectedProfile.name} className="w-16 h-16 md:w-24 md:h-24 rounded-full object-cover border border-border/10 shadow-luxury" />
+                          ) : (
+                            <div className="w-16 h-16 md:w-24 md:h-24 rounded-full bg-card min-w-[4rem] flex items-center justify-center border border-border/10 shadow-luxury">
+                              <ShieldCheck className="text-muted-foreground/20" size={32} />
+                            </div>
+                          )}
+                          <h1 className="font-display text-4xl md:text-6xl font-bold text-foreground leading-[0.85] uppercase italic tracking-tighter">
+                            {selectedProfile.name.split(" ").map((w, i) => <span key={i} className="inline-block mr-4">{w}</span>)}
+                          </h1>
+                        </div>
                         <p className="text-muted-foreground max-w-lg text-lg font-light leading-relaxed">
                           Evaluating performance for <span className="text-foreground font-bold italic">{selectedProfile.description}</span>.
                           Live sync is active.
@@ -337,7 +359,16 @@ export default function JudgeDashboardPage() {
           <span className="text-[9px] font-bold tracking-widest text-muted-foreground opacity-40 uppercase font-mono hidden md:block">Latency: 12ms // VERSION 1.0</span>
         </div>
         <div className="flex items-center gap-10">
-          <span className="text-[9px] font-black uppercase tracking-[0.3em] text-muted-foreground italic">Judge_ID: {judge?.username || "GUEST"}</span>
+          <div className="flex items-center gap-4">
+            {judge?.image_url ? (
+              <img src={judge.image_url} alt={judge.name || judge.username} className="w-6 h-6 rounded-full object-cover border border-white/10" />
+            ) : (
+              <ShieldCheck className="w-5 h-5 text-muted-foreground/40" />
+            )}
+            <span className="text-[9px] font-black uppercase tracking-[0.3em] text-muted-foreground italic">
+              {judge?.name || judge?.username || "GUEST"}
+            </span>
+          </div>
           <span className="text-[9px] font-bold tracking-widest text-secondary uppercase animate-fade-in hidden md:block">Session Verified</span>
         </div>
       </div>

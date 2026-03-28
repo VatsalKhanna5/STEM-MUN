@@ -21,6 +21,11 @@ const TeamCard = ({ member }: { member: TeamMember }) => (
     </div>
     <h3 className="font-display text-lg font-bold text-foreground transition-colors duration-500 group-hover:text-secondary">{member.name}</h3>
     <p className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground mt-2 font-black italic opacity-60 group-hover:opacity-100 transition-opacity whitespace-nowrap">{member.role}</p>
+    {member.quote && (
+      <p className="mt-4 text-[11px] font-body text-foreground/40 italic line-clamp-3 leading-relaxed opacity-0 group-hover:opacity-100 transition-opacity duration-700">
+        "{member.quote}"
+      </p>
+    )}
   </div>
 );
 
