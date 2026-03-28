@@ -2,54 +2,47 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { Trophy, TrendingUp, User, Activity, ChevronRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
-import { clsx, type ClassValue } from "clsx";
-import { twMerge } from "tailwind-merge";
-
-function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
+import { cn } from "@/lib/utils";
+import LiveIndicator from "@/components/ui/LiveIndicator";
+import GlassCard from "@/components/cards/GlassCard";
+import { Search, ChevronRight, TrendingUp, Activity, Terminal } from "lucide-react";
 
 interface LeaderboardEntry {
   profile_id: string;
   name: string;
   image_url: string;
   total_score: number;
+  // Placeholders for future real data
+  committee?: string;
+  sector?: string;
+  performance_metric?: string;
 }
 
 export default function Leaderboard() {
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [nerdsOpen, setNerdsOpen] = useState(false);
   const supabase = createClient();
 
   useEffect(() => {
     fetchLeaderboard();
 
-    // Set up real-time subscription for score events to refresh the leaderboard
     const channel = supabase
       .channel("live_leaderboard")
       .on(
         "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "score_events",
-        },
-        () => {
-          fetchLeaderboard(); // Recalculate on every new event
-        }
+        { event: "INSERT", schema: "public", table: "score_events" },
+        () => { fetchLeaderboard(); }
       )
       .subscribe();
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    return () => { supabase.removeChannel(channel); };
   }, []);
 
   async function fetchLeaderboard() {
-    // We query the dynamic 'leaderboard' view created in the DB
     const { data, error } = await supabase
       .from("leaderboard")
       .select("*")
@@ -61,92 +54,248 @@ export default function Leaderboard() {
     setLoading(false);
   }
 
+  const filteredEntries = entries.filter(
+    (e) => e.name.toLowerCase().includes(search.toLowerCase())
+  );
+
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
-        <Activity className="animate-pulse text-gray-800" size={32} />
-        <p className="text-[10px] uppercase tracking-[0.5em] text-gray-700">Recalculating Global Rankings...</p>
+      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-8">
+        <div className="w-16 h-16 border-2 border-white/5 border-t-secondary rounded-full animate-spin shadow-luxury" />
+        <p className="font-label text-[10px] font-black uppercase tracking-[0.4em] text-secondary animate-pulse italic">Loading Data</p>
       </div>
     );
   }
 
+  const top3 = filteredEntries.slice(0, 3);
+  const rest = filteredEntries.slice(3);
+
   return (
-    <div className="w-full max-w-5xl mx-auto space-y-12 py-10 px-6">
-      <header className="text-center space-y-4 mb-20">
-         <div className="inline-flex p-3 bg-white/5 border border-white/10 rounded-full mb-2">
-            <Trophy size={24} className="text-white" />
-         </div>
-         <h1 className="text-6xl font-black uppercase tracking-tighter italic">Live Rankings</h1>
-         <p className="text-gray-500 uppercase tracking-widest text-xs font-medium">Aggregated real-time event performance</p>
+    <div className="container mx-auto px-6 py-12 md:py-20 animate-fade-in">
+      <header className="mb-20 max-w-4xl">
+        <LiveIndicator label="Live Global Standings" />
+        <h1 className="mt-8 font-display text-5xl md:text-8xl font-bold text-foreground tracking-tighter leading-none uppercase italic">
+          Leaderboard
+        </h1>
+        <p className="mt-6 text-muted-foreground text-lg md:text-xl font-light leading-relaxed max-w-2xl">
+          Live standings of delegate performance across all committees.
+          Updated in real-time.
+        </p>
       </header>
 
-      <div className="space-y-4">
-        <AnimatePresence mode="popLayout">
-          {entries.map((entry, index) => (
-            <motion.div
-              layout
-              key={entry.profile_id}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-            >
-              <Link
-                href={`/profile/${entry.profile_id}`}
-                className={cn(
-                  "group flex items-center justify-between p-6 rounded-2xl border transition-all duration-500 hover:scale-[1.01] active:scale-[0.99] cursor-pointer block",
-                  index === 0 
-                    ? "bg-white text-black border-white shadow-[0_0_40px_rgba(255,255,255,0.1)]" 
-                    : "bg-white/5 border-white/5 hover:border-white/20 text-white"
-                )}
+      {/* 🏆 podium (Rank 01-03) */}
+      <div className="mt-24 grid grid-cols-1 md:grid-cols-3 gap-8 items-end max-w-6xl mx-auto">
+        {/* Rank 2 */}
+        {top3[1] && (
+          <div className="text-center order-2 md:order-1">
+            <span className="inline-block mb-4 rounded-full border border-border/40 px-6 py-1.5 text-[10px] font-black tracking-[0.3em] uppercase text-muted-foreground italic">
+              Rank 02
+            </span>
+            <Link href={`/profile/${top3[1].profile_id}`} className="block">
+              <GlassCard
+                variant="elevated"
+                hover
+                className="p-10 transition-all duration-700 hover:scale-[1.02] border-border/10"
               >
-                  <div className="flex items-center space-x-6">
-                    <span className={cn(
-                        "text-3xl font-black italic w-12",
-                        index === 0 ? "text-black/20" : "text-white/10"
-                    )}>
-                      {(index + 1).toString().padStart(2, '0')}
-                    </span>
-                    <div className={cn(
-                        "w-16 h-16 rounded-full overflow-hidden border p-1 transition-all duration-500",
-                        index === 0 ? "border-black/10" : "border-white/10 grayscale group-hover:grayscale-0"
-                    )}>
-                      <img src={entry.image_url} alt={entry.name} className="w-full h-full object-cover rounded-full" />
-                    </div>
-                    <div>
-                      <h3 className="text-2xl font-black uppercase tracking-tight">{entry.name}</h3>
-                      <div className="flex items-center space-x-2 mt-1">
-                        <TrendingUp size={12} className={index === 0 ? "text-black/40" : "text-green-500/60"} />
-                        <p className={cn(
-                            "text-[10px] uppercase tracking-widest font-bold",
-                            index === 0 ? "text-black/40" : "text-gray-600"
-                        )}>Trending Active</p>
-                      </div>
-                    </div>
-                  </div>
+                <div className="mx-auto rounded-full overflow-hidden border-2 border-border/20 w-28 h-28 mb-8 shadow-luxury group">
+                  <img 
+                    src={top3[1].image_url || "/placeholder.svg"} 
+                    alt={top3[1].name} 
+                    className="w-full h-full object-cover grayscale opacity-80 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-1000" 
+                  />
+                </div>
+                <h3 className="font-display text-xl font-bold text-foreground uppercase italic tracking-tight">{top3[1].name}</h3>
+                <p className="mt-2 text-[9px] font-black tracking-[0.3em] uppercase text-muted-foreground opacity-60">
+                  {top3[1].committee || "---"} // {top3[1].sector || "---"}
+                </p>
+                <p className="mt-6 font-display text-5xl font-bold text-foreground tabular-nums tracking-tighter italic">
+                  {top3[1].total_score}
+                </p>
+                <p className="mt-3 text-[9px] font-bold tracking-widest uppercase text-secondary flex items-center justify-center gap-2">
+                  <TrendingUp size={12} />
+                  {top3[1].performance_metric || "---"} Performance
+                </p>
+              </GlassCard>
+            </Link>
+          </div>
+        )}
 
-                  <div className="flex items-center space-x-8">
-                    <div className="text-right flex flex-col items-end">
-                      <span className="text-4xl font-black italic tabular-nums">{entry.total_score}</span>
-                      <span className={cn(
-                          "text-[9px] uppercase tracking-widest font-bold mt-1 opacity-50",
-                          index === 0 ? "text-black" : "text-white"
-                      )}>Aggregate Points</span>
+        {/* Rank 1 */}
+        {top3[0] && (
+          <div className="text-center order-1 md:order-2 scale-105 md:scale-110 mb-8 md:mb-12">
+            <span className="inline-block mb-4 rounded-full bg-foreground px-8 py-2 text-[10px] font-black tracking-[0.4em] uppercase text-background shadow-xl shadow-white/5 italic">
+              Rank 01
+            </span>
+            <Link href={`/profile/${top3[0].profile_id}`} className="block">
+              <GlassCard
+                variant="elevated"
+                hover
+                className="p-12 transition-all duration-1000 hover:scale-[1.05] border-secondary/20 bg-secondary/[0.02] shadow-2xl shadow-secondary/10"
+              >
+                <div className="mx-auto rounded-full overflow-hidden border-4 border-secondary/20 w-36 h-36 mb-10 shadow-luxury group">
+                  <img 
+                    src={top3[0].image_url || "/placeholder.svg"} 
+                    alt={top3[0].name} 
+                    className="w-full h-full object-cover grayscale opacity-90 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-1000" 
+                  />
+                </div>
+                <h3 className="font-display text-2xl font-bold text-foreground uppercase italic tracking-tighter">{top3[0].name}</h3>
+                <p className="mt-2 text-[10px] font-black tracking-[0.4em] uppercase text-secondary italic">
+                  {top3[0].committee || "---"} // {top3[0].sector || "---"}
+                </p>
+                <p className="mt-8 font-display text-7xl font-bold text-foreground tabular-nums tracking-tighter italic">
+                  {top3[0].total_score}
+                </p>
+                <p className="mt-4 text-[10px] font-black tracking-[0.3em] uppercase text-secondary flex items-center justify-center gap-3 animate-pulse">
+                  <Activity size={12} />
+                  Elite Status Achieved
+                </p>
+              </GlassCard>
+            </Link>
+          </div>
+        )}
+
+        {/* Rank 3 */}
+        {top3[2] && (
+          <div className="text-center order-3">
+            <span className="inline-block mb-4 rounded-full border border-border/40 px-6 py-1.5 text-[10px] font-black tracking-[0.3em] uppercase text-muted-foreground italic">
+              Rank 03
+            </span>
+            <Link href={`/profile/${top3[2].profile_id}`} className="block">
+              <GlassCard
+                variant="elevated"
+                hover
+                className="p-10 transition-all duration-700 hover:scale-[1.02] border-border/10"
+              >
+                <div className="mx-auto rounded-full overflow-hidden border-2 border-border/10 w-28 h-28 mb-8 shadow-luxury group">
+                  <img 
+                    src={top3[2].image_url || "/placeholder.svg"} 
+                    alt={top3[2].name} 
+                    className="w-full h-full object-cover grayscale opacity-70 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-1000" 
+                  />
+                </div>
+                <h3 className="font-display text-xl font-bold text-foreground uppercase italic tracking-tight">{top3[2].name}</h3>
+                <p className="mt-2 text-[9px] font-black tracking-[0.3em] uppercase text-muted-foreground opacity-60">
+                  {top3[2].committee || "---"} // {top3[2].sector || "---"}
+                </p>
+                <p className="mt-6 font-display text-5xl font-bold text-foreground tabular-nums tracking-tighter italic">
+                  {top3[2].total_score}
+                </p>
+                <p className="mt-3 text-[9px] font-bold tracking-widest uppercase text-muted-foreground flex items-center justify-center gap-2">
+                  Stable Position
+                </p>
+              </GlassCard>
+            </Link>
+          </div>
+        )}
+      </div>
+
+      {/* 🔍 Search & Filtering */}
+      <div className="mt-32 flex flex-col md:flex-row gap-6 max-w-6xl mx-auto">
+        <div className="flex-1 flex items-center gap-4 rounded-2xl bg-card border border-border/10 px-6 py-4 transition-all focus-within:border-foreground/20 group">
+          <Search size={18} className="text-muted-foreground group-focus-within:text-foreground transition-colors" />
+          <input
+            type="text"
+            placeholder="Search by delegate or committee..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="flex-1 bg-transparent text-[11px] font-bold uppercase tracking-widest text-foreground placeholder:text-muted-foreground/40 outline-none"
+          />
+        </div>
+        <div className="flex gap-4">
+          <button className="rounded-2xl border border-border/10 px-8 py-4 text-[10px] font-black tracking-widest uppercase text-muted-foreground hover:bg-card hover:text-foreground transition-all active-scale">
+            Filter: All Committees
+          </button>
+          <button className="rounded-2xl border border-border/10 px-8 py-4 text-[10px] font-black tracking-widest uppercase text-muted-foreground hover:bg-card hover:text-foreground transition-all active-scale">
+            Sort: Total Score
+          </button>
+        </div>
+      </div>
+
+      {/* 📋 Remaining Standings */}
+      <div className="mt-12 space-y-4 max-w-6xl mx-auto">
+        <AnimatePresence>
+          {rest.map((entry, idx) => (
+            <motion.div
+              key={entry.profile_id}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.98 }}
+              transition={{ duration: 0.5, delay: idx * 0.05 }}
+            >
+              <Link href={`/profile/${entry.profile_id}`}>
+                <GlassCard variant="elevated" hover className="flex items-center justify-between p-6 border-border/5 hover:border-foreground/10 group active-scale">
+                  <div className="flex items-center gap-8">
+                    <span className="font-display font-black text-2xl text-muted-foreground/30 group-hover:text-foreground/20 transition-colors w-10 italic">
+                      {String(idx + 4).padStart(2, "0")}
+                    </span>
+                    <div className="flex items-center gap-5">
+                        <img 
+                            src={entry.image_url || "/placeholder.svg"} 
+                            alt={entry.name} 
+                            className="w-14 h-14 rounded-full object-cover grayscale opacity-70 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-700 shadow-luxury" 
+                            loading="lazy" 
+                        />
+                        <div>
+                            <p className="font-display font-bold text-lg text-foreground uppercase italic tracking-tight group-hover:text-secondary transition-colors">{entry.name}</p>
+                            <p className="text-[9px] text-muted-foreground font-black uppercase tracking-[0.3em] mt-1 italic">
+                                {entry.committee || "---"} // {entry.sector || "---"}
+                            </p>
+                        </div>
                     </div>
-                    <ChevronRight size={24} className={cn(
-                        "transition-transform group-hover:translate-x-1 duration-500",
-                        index === 0 ? "text-black/20" : "text-white/10"
-                    )} />
                   </div>
+                  <div className="flex items-center gap-12">
+                    <div className="hidden lg:flex flex-col items-end gap-2 pr-8 border-r border-border/10">
+                        <span className="text-[8px] text-muted-foreground/40 uppercase tracking-[0.2em] font-black italic">Consistency</span>
+                        <div className="w-32 h-1 bg-border/5 rounded-full overflow-hidden">
+                            <motion.div 
+                                initial={{ width: 0 }}
+                                animate={{ width: "88%" }}
+                                className="bg-secondary h-full"
+                            />
+                        </div>
+                    </div>
+                    <p className="font-display text-4xl font-black text-foreground tabular-nums tracking-tighter italic w-24 text-right">{entry.total_score}</p>
+                    <ChevronRight size={18} className="text-muted-foreground opacity-20 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
+                  </div>
+                </GlassCard>
               </Link>
             </motion.div>
           ))}
         </AnimatePresence>
+      </div>
 
-        {entries.length === 0 && (
-          <div className="text-center py-20 border border-dashed border-white/5 rounded-2xl">
-             <User size={32} className="mx-auto text-gray-900 mb-4" />
-             <p className="text-gray-600 uppercase tracking-widest text-[10px] italic">No participant signal detected.</p>
+      {/* 📈 System Metadata */}
+      <div className="mt-20 max-w-6xl mx-auto flex flex-col items-center">
+        <button
+          onClick={() => setNerdsOpen(!nerdsOpen)}
+          className="text-[10px] font-black tracking-[0.5em] uppercase text-muted-foreground hover:text-secondary transition-all flex items-center gap-4 group"
+        >
+          <div className={cn("transition-transform duration-500", nerdsOpen && "rotate-90")}>
+            <Activity size={14} className="group-hover:text-secondary" />
           </div>
-        )}
+          {nerdsOpen ? "HIDE RAW DATA" : "VIEW RAW DATA"}
+        </button>
+        <AnimatePresence>
+          {nerdsOpen && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              className="w-full mt-8 overflow-hidden"
+            >
+              <GlassCard variant="elevated" className="p-10 border-border/10">
+                <div className="flex items-center gap-4 mb-8 text-secondary/40">
+                    <Terminal size={14} />
+                    <span className="text-[10px] font-bold tracking-widest uppercase italic">Raw Data Payload</span>
+                </div>
+                <pre className="text-xs text-muted-foreground/60 font-mono overflow-x-auto selection:bg-secondary selection:text-background leading-loose">
+                  {JSON.stringify(entries, null, 2)}
+                </pre>
+              </GlassCard>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );

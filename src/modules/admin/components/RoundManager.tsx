@@ -2,13 +2,10 @@
 
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { Plus, RotateCcw, Trash2, Loader2, CheckCircle2, Circle } from "lucide-react";
-import { clsx, type ClassValue } from "clsx";
-import { twMerge } from "tailwind-merge";
-
-function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
+import { Plus, RotateCcw, Trash2, Loader2, CheckCircle2, Circle, Activity, ShieldCheck } from "lucide-react";
+import { cn } from "@/lib/utils";
+import GlassCard from "@/components/cards/GlassCard";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface Round {
   id: string;
@@ -60,10 +57,8 @@ export default function RoundManager() {
   }
 
   async function toggleRound(id: string) {
-    // 1. Deactivate all rounds
-    await supabase.from("rounds").update({ is_active: false }).neq("id", "00000000-0000-0000-0000-000000000000"); // Update all
+    await supabase.from("rounds").update({ is_active: false }).neq("id", "00000000-0000-0000-0000-000000000000"); 
 
-    // 2. Activate the selected one
     const { error } = await supabase.from("rounds").update({ is_active: true }).eq("id", id);
 
     if (!error) {
@@ -83,92 +78,139 @@ export default function RoundManager() {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-64 text-gray-500">
-        <Loader2 className="animate-spin mr-2" />
-        <span className="uppercase tracking-widest text-xs tracking-tighter">Syncing event rounds...</span>
+      <div className="flex flex-col justify-center items-center h-64 gap-8">
+        <div className="w-12 h-12 border-2 border-white/5 border-t-secondary rounded-full animate-spin shadow-luxury" />
+        <span className="font-display text-secondary text-[8px] uppercase font-black tracking-widest animate-pulse">Loading Rounds</span>
       </div>
     );
   }
 
   return (
-    <div className="space-y-8">
-      {/* Header & Add Button */}
-      <div className="flex justify-between items-center">
-        <h2 className="text-xl font-bold tracking-tight uppercase">Session Management</h2>
+    <div className="space-y-16">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-12 border-b border-border/10 pb-10">
+        <div className="space-y-4">
+           <div className="flex items-center gap-4">
+              <RotateCcw className="w-3 h-3 text-secondary/40" />
+              <span className="font-display text-muted-foreground/40 text-[9px] font-black uppercase tracking-widest italic leading-none">Round Management</span>
+           </div>
+           <h2 className="font-display text-5xl font-bold tracking-tighter uppercase italic leading-none text-foreground">ROUNDS</h2>
+        </div>
         <button
           onClick={() => setIsAdding(!isAdding)}
-          className="flex items-center space-x-2 bg-white text-black px-4 py-2 rounded-md font-bold text-xs uppercase tracking-widest hover:bg-gray-200 transition-colors"
+          className="flex items-center gap-4 bg-foreground text-background px-12 py-5 rounded-2xl font-display font-black text-[11px] uppercase tracking-widest hover:scale-105 active-scale transition-all shadow-luxury"
         >
-          {isAdding ? <Plus className="rotate-45" size={14} /> : <Plus size={14} />}
-          <span>{isAdding ? "Cancel" : "Create Round"}</span>
+          <div className={cn("transition-transform duration-700", isAdding && "rotate-45")}>
+             <Plus size={18} />
+          </div>
+          <span className="leading-none">{isAdding ? "CANCEL" : "NEW ROUND"}</span>
         </button>
       </div>
 
-      {/* Add Form */}
-      {isAdding && (
-        <form onSubmit={handleAddRound} className="p-6 border border-white/20 rounded-lg bg-white/5 space-y-4 animate-in fade-in slide-in-from-top-4 duration-300">
-          <div className="space-y-1">
-            <label className="text-[10px] text-gray-500 uppercase tracking-widest">Round Name</label>
-            <input
-              required
-              value={roundName}
-              onChange={(e) => setRoundName(e.target.value)}
-              placeholder="e.g. General Debate Phase"
-              className="w-full bg-black border border-white/20 p-2 rounded focus:border-white outline-none transition-colors"
-            />
-          </div>
-          <button
-            type="submit"
-            className="w-full bg-white text-black font-bold p-3 rounded-md uppercase tracking-widest text-xs hover:bg-gray-200 transition-colors"
-          >
-            Formulate Round
-          </button>
-        </form>
-      )}
-
-      {/* Rounds List */}
-      <div className="space-y-3">
-        {rounds.map((round) => (
-          <div 
-            key={round.id} 
-            className={cn(
-              "flex items-center justify-between p-5 border rounded-lg transition-all",
-              round.is_active ? "border-white bg-white/10" : "border-white/10 bg-white/5 opacity-60 hover:opacity-100"
-            )}
-          >
-            <div className="flex items-center space-x-4">
-              <button onClick={() => toggleRound(round.id)} className="transition-transform active:scale-95">
-                {round.is_active ? (
-                  <CheckCircle2 size={24} className="text-white" />
-                ) : (
-                  <Circle size={24} className="text-gray-600 hover:text-white transition-colors" />
-                )}
-              </button>
-              <div>
-                <h3 className="font-bold tracking-tight">{round.name}</h3>
-                <span className="text-[10px] text-gray-500 uppercase tracking-widest">
-                  {round.is_active ? "Current Live Session" : "Standby"}
-                </span>
-              </div>
-            </div>
-            
-            {!round.is_active && (
-              <button
-                onClick={() => handleDeleteRound(round.id)}
-                className="p-2 text-gray-600 hover:text-red-500 transition-colors"
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-20 items-start">
+          <AnimatePresence>
+            {isAdding && (
+              <motion.div 
+                initial={{ opacity: 0, x: -40 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, scale: 0.95, x: -20 }}
+                transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+                className="lg:col-span-5"
               >
-                <Trash2 size={16} />
-              </button>
+                <GlassCard variant="glass" className="space-y-10 p-12 bg-card-elevated/50 border-border/10 group">
+                  <header className="flex items-center justify-between border-b border-border/10 pb-8">
+                    <div className="flex items-center gap-4">
+                      <Activity size={18} className="text-secondary/40 group-hover:text-secondary group-hover:scale-110 transition-all duration-700" />
+                      <h3 className="font-display text-[10px] uppercase font-black tracking-[0.3em] italic text-foreground">NEW ROUND</h3>
+                    </div>
+                  </header>
+
+                  <form onSubmit={handleAddRound} className="space-y-10">
+                    <div className="space-y-4">
+                      <label className="font-display text-[9px] text-muted-foreground/40 uppercase font-black italic tracking-widest">ROUND NAME</label>
+                      <input
+                        required
+                        value={roundName}
+                        onChange={(e) => setRoundName(e.target.value)}
+                        placeholder="e.g. Round 1"
+                        className="w-full bg-card/50 border border-border/10 p-6 rounded-xl text-[12px] uppercase tracking-widest focus:border-foreground/20 outline-none transition-all placeholder:text-muted-foreground/5 font-bold font-display"
+                      />
+                    </div>
+                    <button
+                      type="submit"
+                      className="w-full bg-foreground text-background font-display font-black p-8 rounded-2xl uppercase tracking-widest text-[11px] hover:scale-[0.98] active-scale transition-all flex items-center justify-center gap-6 shadow-luxury"
+                    >
+                      <Plus size={18} />
+                      <span className="leading-none">SAVE ROUND</span>
+                    </button>
+                  </form>
+                </GlassCard>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          <div className={cn(
+            "space-y-6",
+            isAdding ? "lg:col-span-7" : "lg:col-span-12 grid grid-cols-1 md:grid-cols-2 gap-10 space-y-0"
+          )}>
+            {rounds.map((round) => (
+              <GlassCard 
+                key={round.id} 
+                variant={round.is_active ? "glass" : "elevated"}
+                hover
+                className={cn(
+                  "group flex items-center justify-between p-10 border-border/5 hover:border-foreground/10 transition-all duration-1000 shadow-luxury active-scale",
+                  round.is_active ? "border-secondary/40 shadow-secondary/5 bg-secondary/[0.02]" : "bg-card-elevated/20"
+                )}
+              >
+                <div className="flex items-center gap-10">
+                  <button 
+                    onClick={() => toggleRound(round.id)} 
+                    className={cn(
+                        "w-12 h-12 rounded-full flex items-center justify-center transition-all duration-700 active-scale shadow-luxury",
+                        round.is_active ? "bg-secondary text-background" : "bg-card text-muted-foreground/20 hover:text-foreground"
+                    )}
+                  >
+                    {round.is_active ? (
+                      <CheckCircle2 size={24} />
+                    ) : (
+                      <Circle size={24} />
+                    )}
+                  </button>
+                  <div className="space-y-2">
+                    <h3 className={cn("font-display font-bold text-2xl uppercase italic tracking-tighter transition-colors", round.is_active ? "text-foreground" : "text-muted-foreground/60 group-hover:text-foreground")}>{round.name}</h3>
+                    <div className="flex items-center gap-3">
+                        {round.is_active && <div className="w-2 h-2 rounded-full bg-secondary pulse-secondary" />}
+                        <span className={cn(
+                            "font-display text-[9px] uppercase font-black tracking-widest italic",
+                            round.is_active ? "text-secondary" : "text-muted-foreground/20"
+                        )}>
+                            {round.is_active ? "ACTIVE ROUND" : "INACTIVE"}
+                        </span>
+                    </div>
+                  </div>
+                </div>
+                
+                {!round.is_active && (
+                  <button
+                    onClick={() => handleDeleteRound(round.id)}
+                    className="p-4 text-muted-foreground/10 hover:text-destructive hover:bg-destructive/10 rounded-2xl transition-all active-scale"
+                  >
+                    <Trash2 size={20} />
+                  </button>
+                )}
+              </GlassCard>
+            ))}
+
+            {rounds.length === 0 && !isAdding && (
+              <div className="col-span-full py-48 text-center bg-card/30 border border-dashed border-border/10 rounded-[3rem] flex flex-col items-center justify-center gap-12 shadow-luxury outline-none">
+                <RotateCcw size={64} className="text-muted-foreground/10 animate-pulse" />
+                <div className="space-y-4">
+                  <p className="font-display text-muted-foreground/20 text-[11px] font-black italic uppercase tracking-[0.4em]">NO ROUNDS FOUND</p>
+                  <p className="font-display text-muted-foreground/5 text-[9px] uppercase italic tracking-[0.2em] font-bold">Create a round to start.</p>
+                </div>
+              </div>
             )}
           </div>
-        ))}
-
-        {rounds.length === 0 && !isAdding && (
-          <div className="py-20 text-center border border-dashed border-white/10 rounded-lg">
-            <RotateCcw size={32} className="mx-auto text-gray-700 mb-4" />
-            <p className="text-gray-500 uppercase tracking-widest text-xs italic">No rounds defined for this event.</p>
-          </div>
-        )}
       </div>
     </div>
   );

@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { History, Zap, Minus, Activity, MessageSquare } from "lucide-react";
+import { History, Zap, Minus, Activity, MessageSquare, Plus, ShieldAlert, Terminal } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { cn } from "@/lib/utils";
 
 interface RecentEvent {
   id: string;
@@ -67,54 +68,63 @@ export default function RecentEventsAudit({ judgeId }: { judgeId: string }) {
 
   const getIcon = (type: string) => {
     switch (type) {
-      case "POI_GIVEN": return <PlusIcon className="text-white" />;
-      case "POI_RECEIVED": return <Zap size={10} className="text-white" />;
-      case "POO": return <Minus size={10} className="text-red-500" />;
-      case "SPEECH": return <Activity size={10} className="text-blue-500" />;
-      default: return null;
+      case "POI_GIVEN": return <Plus size={12} className="text-secondary" />;
+      case "POI_RECEIVED": return <Zap size={12} className="text-secondary" />;
+      case "POO": return <ShieldAlert size={12} className="text-red-500/60" />;
+      case "SPEECH": return <Activity size={12} className="text-white/40" />;
+      default: return <Terminal size={12} className="text-white/20" />;
     }
   };
 
-  function PlusIcon(props: any) {
-    return <svg viewBox="0 0 24 24" width="10" height="10" stroke="currentColor" strokeWidth="4" fill="none" {...props}><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>;
-  }
-
   return (
-    <div className="bg-black/40 border border-white/5 rounded-2xl p-6 backdrop-blur-sm space-y-4">
-      <div className="flex items-center space-x-2 border-b border-white/5 pb-4">
-        <History size={14} className="text-gray-500" />
-        <h3 className="text-[10px] uppercase tracking-[0.3em] font-black text-white/80">Audit Log (Last 5 Events)</h3>
+    <div className="bg-surface-container-low/40 border border-white/5 rounded-3xl p-8 backdrop-blur-md space-y-8 shadow-luxury relative overflow-hidden group">
+      <div className="flex items-center justify-between border-b border-outline-variant/15 pb-6">
+        <div className="flex items-center gap-4">
+            <History size={16} className="text-on-surface/20" />
+            <h3 className="font-label text-[10px] uppercase tracking-[0.4em] font-black text-white italic">RECENT ACTIVITY</h3>
+        </div>
+        <div className="w-1.5 h-1.5 rounded-full bg-secondary pulse-secondary" />
       </div>
 
-      <div className="space-y-3">
+      <div className="space-y-6">
         <AnimatePresence initial={false}>
           {events.map((event) => (
             <motion.div
               key={event.id}
-              initial={{ opacity: 0, x: -10 }}
+              initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
-              className="flex items-center justify-between text-[10px] py-1"
+              className="flex items-center justify-between group/item"
             >
-              <div className="flex items-center space-x-3">
-                <div className="w-4 h-4 rounded-full bg-white/5 border border-white/10 flex items-center justify-center">
+              <div className="flex items-center gap-5">
+                <div className="w-8 h-8 rounded-full bg-surface-container-high border border-white/5 flex items-center justify-center group-hover/item:border-secondary/20 transition-all duration-700 active-scale">
                    {getIcon(event.type)}
                 </div>
-                <div className="flex flex-col">
-                    <span className="font-bold uppercase tracking-tight text-white/90">{event.profiles?.name}</span>
-                    <span className="text-[8px] text-gray-600 uppercase tracking-widest">{event.type.replace("_", " ")}</span>
+                <div className="flex flex-col gap-1">
+                    <span className="font-headline font-black text-[13px] uppercase italic tracking-tighter text-white group-hover/item:text-secondary transition-colors">{event.profiles?.name}</span>
+                    <span className="font-label text-[8px] text-on-surface/20 uppercase tracking-[0.2em] font-bold italic">{event.type.replace("_", " ")}</span>
                 </div>
               </div>
               <div className="text-right">
-                <span className="font-mono font-black text-white/50">{event.value > 0 ? `+${event.value}` : event.value}</span>
+                <span className={cn(
+                    "font-mono font-black text-[12px] tracking-widest transition-all duration-700",
+                    event.value > 0 ? "text-secondary" : "text-white/20"
+                )}>
+                    {event.value > 0 ? `+${event.value.toFixed(1)}` : event.value.toFixed(1)}
+                </span>
               </div>
             </motion.div>
           ))}
         </AnimatePresence>
 
         {events.length === 0 && (
-          <p className="text-[9px] text-gray-800 uppercase tracking-widest text-center italic py-4 font-medium">Clear record. No events transmitted.</p>
+          <div className="py-12 flex flex-col items-center justify-center gap-6 opacity-20">
+              <Terminal size={32} />
+              <p className="font-label text-[9px] text-on-surface/60 uppercase tracking-[0.3em] text-center italic font-bold">No recent activity.</p>
+          </div>
         )}
       </div>
+
+      <div className="absolute top-0 right-0 w-32 h-32 bg-secondary/5 blur-[100px] pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
     </div>
   );
 }

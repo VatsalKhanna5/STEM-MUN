@@ -2,7 +2,10 @@
 
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { Settings, Save, Loader2, CheckCircle } from "lucide-react";
+import { Settings, Save, Loader2, CheckCircle, Database, ShieldCheck, Activity, Terminal, Plus, Minus } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { cn } from "@/lib/utils";
+import GlassCard from "@/components/cards/GlassCard";
 
 interface ScoringConfig {
   id: string;
@@ -35,7 +38,6 @@ export default function ScoringConfigManager() {
     if (!error && data) {
       setConfig(data);
     } else if (error && error.code === "PGRST116") {
-      // No record found, initialize with defaults
       const defaultConfig = {
         poi_given: 1,
         poi_received: 2,
@@ -81,87 +83,127 @@ export default function ScoringConfigManager() {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-64 text-gray-500">
-        <Loader2 className="animate-spin mr-2" />
-        <span className="uppercase tracking-widest text-xs tracking-tighter">Syncing configuration...</span>
+      <div className="flex flex-col justify-center items-center h-64 gap-8">
+        <div className="w-12 h-12 border-2 border-white/5 border-t-secondary rounded-full animate-spin shadow-luxury" />
+        <span className="font-display text-secondary text-[8px] uppercase font-black tracking-widest animate-pulse">Loading Rules</span>
       </div>
     );
   }
 
   return (
-    <div className="max-w-2xl space-y-8">
-      <div className="header space-y-2">
-        <h2 className="text-xl font-bold tracking-tight uppercase">Global Event Parameters</h2>
-        <p className="text-gray-500 text-xs uppercase tracking-widest">Define the point weights for all scoring events.</p>
+    <div className="space-y-16">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-12 border-b border-border/10 pb-10">
+        <div className="space-y-4">
+           <div className="flex items-center gap-4">
+              <Settings className="w-3 h-3 text-secondary/40" />
+              <span className="font-display text-muted-foreground/40 text-[9px] font-black uppercase tracking-widest italic leading-none">Global Rules</span>
+           </div>
+           <h2 className="font-display text-5xl font-bold tracking-tighter uppercase italic leading-none text-foreground">SCORING RULES</h2>
+           <p className="font-display text-muted-foreground/40 text-[10px] uppercase font-bold italic tracking-widest max-w-xl">
+              Modify scoring values. Changes take effect immediately.
+           </p>
+        </div>
       </div>
 
-      <div className="space-y-6 p-8 border border-white/10 rounded-xl bg-white/5 backdrop-blur-sm">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {/* POI Given */}
-          <div className="space-y-2">
-            <label className="text-[10px] text-gray-500 uppercase tracking-[0.2em] font-bold">POI Given</label>
-            <input
-              type="number"
-              value={config?.poi_given}
-              onChange={(e) => setConfig({ ...config!, poi_given: parseInt(e.target.value) || 0 })}
-              className="w-full bg-black border border-white/20 p-3 rounded-md focus:border-white outline-none transition-all text-xl font-bold"
-            />
-          </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+        <ConfigItem 
+          label="QUESTIONS ASKED" 
+          description="Points awarded for asking questions."
+          value={config?.poi_given} 
+          icon={<Plus size={20} />}
+          onChange={(val: number) => setConfig({ ...config!, poi_given: val })}
+        />
+        <ConfigItem 
+          label="QUESTIONS TAKEN" 
+          description="Points awarded for taking questions."
+          value={config?.poi_received} 
+          icon={<Activity size={20} />}
+          onChange={(val: number) => setConfig({ ...config!, poi_received: val })}
+        />
+        <ConfigItem 
+          label="INTERRUPTIONS" 
+          description="Points deducted for interruptions."
+          value={config?.poo_penalty} 
+          icon={<ShieldCheck size={20} />}
+          isNegative
+          onChange={(val: number) => setConfig({ ...config!, poo_penalty: val })}
+        />
+        <ConfigItem 
+          label="SPEECH MAX SCORE" 
+          description="Maximum score for a speech."
+          value={config?.speech_max} 
+          icon={<Settings size={20} />}
+          onChange={(val: number) => setConfig({ ...config!, speech_max: val })}
+        />
+      </div>
 
-          {/* POI Received */}
-          <div className="space-y-2">
-            <label className="text-[10px] text-gray-500 uppercase tracking-[0.2em] font-bold">POI Received</label>
-            <input
-              type="number"
-              value={config?.poi_received}
-              onChange={(e) => setConfig({ ...config!, poi_received: parseInt(e.target.value) || 0 })}
-              className="w-full bg-black border border-white/20 p-3 rounded-md focus:border-white outline-none transition-all text-xl font-bold"
-            />
-          </div>
-
-          {/* POO Penalty */}
-          <div className="space-y-2">
-            <label className="text-[10px] text-gray-500 uppercase tracking-[0.2em] font-bold">POO Penalty</label>
-            <input
-              type="number"
-              value={config?.poo_penalty}
-              onChange={(e) => setConfig({ ...config!, poo_penalty: parseInt(e.target.value) || 0 })}
-              className="w-full bg-black border border-white/20 p-3 rounded-md focus:border-white outline-none transition-all text-xl font-bold text-red-500"
-            />
-          </div>
-
-          {/* Speech Max */}
-          <div className="space-y-2">
-            <label className="text-[10px] text-gray-500 uppercase tracking-[0.2em] font-bold">Speech Max Score</label>
-            <input
-              type="number"
-              value={config?.speech_max}
-              onChange={(e) => setConfig({ ...config!, speech_max: parseInt(e.target.value) || 0 })}
-              className="w-full bg-black border border-white/20 p-3 rounded-md focus:border-white outline-none transition-all text-xl font-bold"
-            />
-          </div>
-        </div>
-
+      <div className="max-w-xl space-y-12">
         <button
           onClick={handleSave}
           disabled={saving}
-          className="w-full mt-6 flex items-center justify-center space-x-2 bg-white text-black font-bold p-4 rounded-md uppercase tracking-widest text-xs hover:bg-gray-200 transition-all disabled:opacity-50"
-        >
-          {saving ? (
-            <Loader2 className="animate-spin" size={16} />
-          ) : success ? (
-            <CheckCircle className="text-green-600" size={16} />
-          ) : (
-            <Save size={16} />
+          className={cn(
+            "w-full flex items-center justify-center gap-6 p-10 rounded-3xl font-display font-black text-[12px] uppercase tracking-[0.5em] transition-all duration-1000 shadow-luxury active-scale relative overflow-hidden group border border-border/5",
+            success ? "bg-secondary text-background border-secondary" : "bg-foreground text-background hover:opacity-90 transition-opacity"
           )}
-          <span>{saving ? "Deploying..." : success ? "Configuration Applied" : "Save Global Rules"}</span>
+        >
+          <span className="relative z-10 font-black">
+            {saving ? "SAVING..." : success ? "SAVED" : "SAVE RULES"}
+          </span>
+          {saving ? (
+            <Loader2 className="animate-spin relative z-10" size={18} />
+          ) : success ? (
+             <ShieldCheck className="relative z-10" size={18} />
+          ) : (
+            <Database className="relative z-10 group-hover:rotate-12 transition-transform" size={18} />
+          )}
         </button>
-      </div>
-
-      <div className="flex items-center space-x-2 p-4 border border-white/5 rounded-md text-[9px] text-gray-600 uppercase tracking-[0.3em]">
-        <Settings size={12} />
-        <span>System defaults to specific constants if reset is required.</span>
+        
+        <div className="flex items-center gap-6 p-8 bg-card/30 rounded-[2.5rem] border border-border/10 text-[9px] text-muted-foreground/20 uppercase tracking-[0.3em] font-black italic">
+          <Terminal size={16} className="text-secondary/40" />
+          <span className="leading-relaxed">All modifications are logged against your administrator credentials.</span>
+        </div>
       </div>
     </div>
+  );
+}
+
+function ConfigItem({ label, value, onChange, icon, description, isNegative = false }: any) {
+  return (
+    <GlassCard variant="elevated" hover className="group flex flex-col p-12 border-border/5 hover:border-foreground/10 transition-all duration-1000 active-scale shadow-luxury min-h-[320px]">
+       <div className="flex-1 space-y-8">
+          <div className="flex justify-between items-start">
+             <div className="w-14 h-14 rounded-full bg-card border border-border/10 flex items-center justify-center text-muted-foreground/20 group-hover:bg-secondary group-hover:text-background transition-all duration-700 shadow-luxury">
+                {icon}
+             </div>
+             <div className={cn(
+               "text-7xl font-display font-bold italic tracking-tighter tabular-nums transition-colors duration-1000 leading-none",
+               isNegative ? "text-destructive/40" : "text-foreground group-hover:text-secondary"
+             )}>
+                {value >= 0 && !isNegative ? "+" : ""}{value}
+             </div>
+          </div>
+          <div className="space-y-4">
+            <h4 className="font-display text-[10px] font-black uppercase tracking-[0.4em] italic text-muted-foreground/20 group-hover:text-foreground transition-colors">{label}</h4>
+            <p className="font-display text-muted-foreground/40 leading-relaxed text-[11px] uppercase tracking-widest font-bold italic h-8 opacity-40 group-hover:opacity-100 transition-opacity">
+              {description}
+            </p>
+          </div>
+       </div>
+       
+       <div className="flex gap-6 mt-12 pt-10 border-t border-border/10">
+          <button 
+            onClick={() => onChange(value - 1)}
+            className="flex-1 py-6 rounded-2xl bg-card border border-border/5 hover:bg-card-elevated hover:border-border/20 transition-all flex items-center justify-center active-scale group/btn"
+          >
+             <Minus size={18} className="text-muted-foreground/20 group-hover/btn:text-foreground transition-colors" />
+          </button>
+          <button 
+            onClick={() => onChange(value + 1)}
+            className="flex-1 py-6 rounded-2xl bg-card border border-border/5 hover:bg-card-elevated hover:border-border/20 transition-all flex items-center justify-center active-scale group/btn relative"
+          >
+             <Plus size={18} className="text-muted-foreground/20 group-hover/btn:text-foreground transition-colors" />
+          </button>
+       </div>
+    </GlassCard>
   );
 }

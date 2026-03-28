@@ -3,8 +3,10 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { ShieldCheck, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
+import PageLayout from "@/components/layout/PageLayout";
+import GlassCard from "@/components/cards/GlassCard";
+import { ShieldCheck, Fingerprint, ArrowRight, Loader2 } from "lucide-react";
 
 export default function JudgeLoginPage() {
   const [username, setUsername] = useState("");
@@ -32,7 +34,6 @@ export default function JudgeLoginPage() {
         throw new Error("Invalid credentials.");
       }
 
-      // Store judge session (simplified)
       localStorage.setItem("stem_mun_judge", JSON.stringify({
         id: data.id,
         username: data.username
@@ -47,69 +48,101 @@ export default function JudgeLoginPage() {
   };
 
   return (
-    <main className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-6 selection:bg-white selection:text-black font-sans">
-      <motion.div 
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="w-full max-w-sm"
-      >
-        <header className="mb-12 text-center">
-          <div className="inline-flex p-3 bg-white/5 border border-white/10 rounded-full mb-6">
-            <ShieldCheck size={32} />
-          </div>
-          <h1 className="text-3xl font-bold tracking-tighter uppercase whitespace-nowrap">Judge Portal</h1>
-          <p className="text-gray-500 uppercase tracking-widest text-[9px] mt-2 leading-relaxed">
-            Authorized Scoring Personnel Only
-          </p>
-        </header>
+    <PageLayout>
+      <section className="min-h-[80vh] flex items-center justify-center px-6 relative overflow-hidden">
+        {/* Decorative Background Elements */}
+        <div className="absolute inset-0 z-0 pointer-events-none opacity-20">
+          <div className="absolute top-[20%] left-[10%] w-[400px] h-[400px] bg-secondary/10 blur-[120px] rounded-full" />
+          <div className="absolute bottom-[20%] right-[10%] w-[300px] h-[300px] bg-foreground/5 blur-[100px] rounded-full" />
+        </div>
 
-        <form onSubmit={handleLogin} className="space-y-4">
-          <div className="space-y-1">
-            <label className="text-[10px] text-gray-500 uppercase tracking-[0.2em] font-bold ml-1">Username</label>
-            <input
-              required
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              className="w-full bg-black border border-white/10 p-3 rounded-md focus:border-white outline-none transition-all placeholder:text-gray-800"
-              placeholder="id_code_00"
-              autoFocus
-            />
-          </div>
-          <div className="space-y-1">
-            <label className="text-[10px] text-gray-500 uppercase tracking-[0.2em] font-bold ml-1">Access Token</label>
-            <input
-              required
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full bg-black border border-white/10 p-3 rounded-md focus:border-white outline-none transition-all placeholder:text-gray-800"
-              placeholder="••••••••"
-            />
-          </div>
-
-          {error && (
-            <motion.p 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="text-red-500 text-[10px] uppercase font-bold text-center tracking-widest pt-2"
-            >
-              Authentication Failed: {error}
-            </motion.p>
-          )}
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full mt-6 bg-white text-black font-black p-4 rounded-md uppercase tracking-[0.2em] text-xs hover:bg-gray-200 transition-all disabled:opacity-50 flex items-center justify-center"
+        <motion.div
+           initial={{ opacity: 0, scale: 0.95, y: 20 }}
+           animate={{ opacity: 1, scale: 1, y: 0 }}
+           transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+           className="w-full max-w-md relative z-10 flex flex-col gap-8"
+        >
+          {/* Back Navigation */}
+          <button 
+            onClick={() => router.back()}
+            className="self-start flex items-center gap-3 text-[10px] font-black tracking-[0.3em] uppercase text-muted-foreground hover:text-foreground transition-all active-scale group"
           >
-            {loading ? <Loader2 className="animate-spin" size={18} /> : "Validate Credentials"}
+            <ArrowRight className="w-4 h-4 rotate-180 group-hover:-translate-x-1 transition-transform" />
+            <span>Go Back</span>
           </button>
-        </form>
+          <GlassCard variant="glass" className="p-12 md:p-16 border-border/10 shadow-2xl space-y-12">
+            <header className="flex flex-col items-center gap-8 text-center">
+              <div className="w-20 h-20 rounded-3xl bg-secondary/10 border border-secondary/20 flex items-center justify-center shadow-luxury transition-transform duration-700 hover:rotate-[10deg] cursor-pointer">
+                <Fingerprint size={32} className="text-secondary" />
+              </div>
+              <div className="space-y-4">
+                <h1 className="font-display text-4xl font-bold tracking-tighter uppercase italic leading-none text-foreground">
+                  Judge Login
+                </h1>
+                <p className="text-[10px] font-black uppercase tracking-[0.4em] text-muted-foreground opacity-40 italic">
+                  Scoring Platform Access
+                </p>
+              </div>
+            </header>
 
-        <footer className="mt-20 text-center">
-            <p className="text-[8px] text-gray-700 uppercase tracking-[0.5em]">STEM Model United Nations • Secure System</p>
-        </footer>
-      </motion.div>
-    </main>
+            <form onSubmit={handleLogin} className="space-y-8">
+              <div className="space-y-6">
+                <div>
+                  <label className="text-[10px] font-black tracking-[0.3em] uppercase text-muted-foreground italic mb-3 block opacity-60">Username</label>
+                  <input
+                    required
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    className="w-full bg-card-elevated/50 border border-border/10 hover:border-foreground/20 p-5 rounded-2xl focus:outline-none focus:border-secondary/40 focus:ring-1 focus:ring-secondary/10 transition-all font-display font-bold text-xs uppercase tracking-widest placeholder:text-muted-foreground/20 placeholder:italic"
+                    placeholder="Enter Username"
+                    autoFocus
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-black tracking-[0.3em] uppercase text-muted-foreground italic mb-3 block opacity-60">Password</label>
+                  <input
+                    required
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full bg-card-elevated/50 border border-border/10 hover:border-foreground/20 p-5 rounded-2xl focus:outline-none focus:border-secondary/40 focus:ring-1 focus:ring-secondary/10 transition-all font-display font-bold text-xs uppercase tracking-[0.5em] placeholder:text-muted-foreground/20 placeholder:tracking-widest placeholder:italic"
+                    placeholder="••••••••"
+                  />
+                </div>
+              </div>
+
+              {error && (
+                <motion.p 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="text-destructive text-[10px] uppercase font-black text-center tracking-widest pt-2 italic"
+                >
+                  <span className="opacity-40">ERROR:</span> {error}
+                </motion.p>
+              )}
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-foreground text-background font-display font-black p-5 rounded-2xl hover:scale-[0.98] transition-all uppercase tracking-[0.3em] text-[11px] shadow-xl flex items-center justify-center gap-4 group disabled:opacity-20 active-scale"
+              >
+                {loading ? <Loader2 size={16} className="animate-spin" /> : (
+                  <>
+                    <span>Login</span>
+                    <ArrowRight size={16} className="group-hover:translate-x-2 transition-transform duration-500" />
+                  </>
+                )}
+              </button>
+            </form>
+          </GlassCard>
+
+          <footer className="mt-16 text-center opacity-20 pointer-events-none">
+            <p className="text-[9px] font-black uppercase tracking-[1em] italic">
+              STEM MUN PLATFORM
+            </p>
+          </footer>
+        </motion.div>
+      </section>
+    </PageLayout>
   );
 }
