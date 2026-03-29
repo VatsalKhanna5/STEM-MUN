@@ -100,8 +100,8 @@ const Navbar = () => {
       scrolled ? "top-4" : "top-6"
     )}>
       <div className={cn(
-        "glass rounded-full px-8 py-3 flex items-center justify-between transition-all duration-700 border border-white/10 shadow-luxury",
-        scrolled ? "bg-black/80 backdrop-blur-2xl py-3" : "bg-black/40 backdrop-blur-xl py-4"
+        "glass-premium rounded-full px-8 py-3 flex items-center justify-between transition-all duration-700 shadow-luxury",
+        scrolled ? "py-3" : "py-4"
       )}>
         {/* LEFT: Branding */}
         <Link href="/" className="flex items-center gap-3 active-scale group">
@@ -148,15 +148,15 @@ const Navbar = () => {
               >
                  {/* Prominent Timer */}
                  <div className={cn(
-                   "flex items-center gap-4 border rounded-2xl px-6 py-2 shadow-lg transition-all duration-500",
+                   "flex items-center gap-4 rounded-2xl px-6 py-2 shadow-luxury transition-all duration-500",
                    timerRemaining < 0 && session.current_speaker_type === 'delegate' && !session.is_paused
                     ? "bg-red-500/20 border-red-500/40 animate-pulse"
-                    : "bg-accent/10 border-accent/20 shadow-accent/5"
+                    : "bg-accent/10 border-accent/20 accent-glow"
                  )}>
                     <div className={cn(
                       "w-2 h-2 rounded-full",
-                      timerRemaining < 0 && session.current_speaker_type === 'delegate' && !session.is_paused ? "bg-red-500" : "bg-accent animate-pulse",
-                      session.halt_signal && "bg-accent ring-4 ring-accent/30 animate-ping"
+                      timerRemaining < 0 && session.current_speaker_type === 'delegate' && !session.is_paused ? "bg-red-500" : "bg-accent",
+                      session.halt_signal && "ring-4 ring-accent/30 animate-pulse-soft"
                     )} />
                     <span className={cn(
                       "text-xl font-mono font-bold tabular-nums tracking-tighter",

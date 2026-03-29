@@ -97,7 +97,7 @@ export default function HomePage() {
             className="absolute inset-x-0 top-0 h-[600px] bg-[radial-gradient(circle_at_center,_var(--tw-gradient-from)_0%,_transparent_70%)] from-secondary/5 opacity-50"
           />
 
-          <div className="relative z-10 max-w-5xl mx-auto animate-fade-in space-y-16 flex flex-col items-center w-full">
+          <div className="relative z-10 max-w-5xl mx-auto animate-fade-in space-y-16 flex flex-col items-center w-full pt-32">
             <div className="flex flex-col items-center gap-6">
               <div className="flex items-center gap-3 bg-white/5 border border-white/10 px-6 py-2 rounded-full backdrop-blur-md">
                 <span className="text-[10px] font-black uppercase tracking-[0.4em] text-white/40 italic">CONCORDIA // APOGEE</span>
@@ -133,14 +133,13 @@ export default function HomePage() {
               )}
             </AnimatePresence>
 
-            <div className="space-y-8 flex flex-col items-center">
-              <h1 className="font-display text-7xl md:text-9xl font-black tracking-tighter leading-[0.8] uppercase italic text-center">
-                <span className="text-white drop-shadow-2xl">STEM-MUN</span>
-                <br />
-                <span className="text-white/20">EDITION 1.0</span>
+            <div className="space-y-12 flex flex-col items-center">
+              <h1 className="hero-title text-gradient text-center transition-all duration-1000">
+                STEM-MUN
+                <span className="block text-white/10 text-[clamp(1.5rem,4vw,3rem)] tracking-[0.4em] mt-8 not-italic font-black">Archive Protocol 1.0</span>
               </h1>
-              <p className="mt-8 text-white/40 max-w-2xl mx-auto text-lg md:text-xl font-light leading-relaxed uppercase tracking-tighter italic text-center">
-                The Sovereign Intelligence Platform for Real-time MUN Scoring & Analytics // Archive Protocol Engaged.
+              <p className="body-text text-lg md:text-xl text-center max-w-3xl mx-auto">
+                The Sovereign Intelligence Platform for Real-time MUN Scoring & Analytics // Secure Session Engaged.
               </p>
             </div>
 
@@ -165,8 +164,8 @@ export default function HomePage() {
       <section className="bg-card/10 border-y border-white/5 py-48">
         <div className="container mx-auto px-6 flex flex-col items-center">
           <div className="text-center mb-32 space-y-6">
-            <h2 className="text-5xl md:text-7xl font-sans font-black tracking-tighter uppercase italic text-white text-gradient">GRAND ARBITERS</h2>
-            <p className="text-[10px] text-white/20 font-black uppercase tracking-[0.6em] italic">The Adjudicators of concordia</p>
+            <h2 className="section-title text-gradient">GRAND ARBITERS</h2>
+            <p className="caption">The Adjudicators of concordia</p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-20 max-w-7xl mx-auto items-center justify-items-center">
             {loading ? (
@@ -186,8 +185,8 @@ export default function HomePage() {
       <section className="container mx-auto px-6 py-48">
         <div className="max-w-6xl mx-auto space-y-24">
           <div className="text-center space-y-4">
-            <h2 className="text-5xl md:text-7xl font-sans font-black tracking-tighter uppercase italic text-white text-gradient">ANALYTIC FEED</h2>
-            <p className="text-[10px] font-black tracking-[0.6em] uppercase text-white/20 italic">Global Leaderboard // Sector Performance</p>
+            <h2 className="section-title text-gradient">ANALYTIC FEED</h2>
+            <p className="caption">Global Leaderboard // Sector Performance</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-24">

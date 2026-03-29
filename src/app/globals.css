@@ -1,44 +1,28 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 @import "tailwindcss";
 
 @layer base {
   :root {
-    --background: 0 0% 0%; /* Pure Black */
-    --foreground: 0 0% 100%; /* Pure White */
+    /* Core Palette */
+    --background: 0 0% 0%; /* #000000 */
+    --foreground: 0 0% 100%; /* #ffffff */
 
-    --card: 0 0% 4%;
-    --card-foreground: 0 0% 100%;
-    --card-elevated: 0 0% 7%; /* Dark Gray */
+    /* Surface Tokens */
+    --card: 0 0% 5.88%; /* #0f0f0f */
+    --card-elevated: 0 0% 8.24%; /* #151515 */
 
-    --popover: 0 0% 4%;
-    --popover-foreground: 0 0% 100%;
+    /* Text Tokens */
+    --text-primary: 0 0% 100%; /* #ffffff */
+    --text-secondary: 0 0% 63.14%; /* #a1a1a1 */
 
-    --primary: 0 0% 100%;
-    --primary-foreground: 0 0% 0%;
-
-    --secondary: 0 0% 64%; /* Muted Gray */
-    --secondary-foreground: 0 0% 100%;
-
-    --muted: 0 0% 15%;
-    --muted-foreground: 0 0% 64%;
-
-    --accent: 142 60% 45%; /* Muted Green strictly kept for indicators */
-    --accent-foreground: 0 0% 100%;
-
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-
-    --border: 0 0% 15%;
-    --input: 0 0% 15%;
+    /* Functional Tokens */
+    --accent: 142 60% 45%; /* Action Green - Restricted */
+    --border: 0 0% 100% / 0.08; /* rgba(255,255,255,0.08) */
     --ring: 142 60% 45%;
 
-    --radius: 0.75rem;
-
-    --glass-bg: 0 0% 4% / 0.7;
-    --glass-border: 0 0% 20% / 0.4;
-
-    --font-sans: 'Inter', sans-serif;
+    --radius: 1rem;
+    --font-sans: 'Outfit', sans-serif;
     --font-mono: 'JetBrains Mono', monospace;
   }
 }
@@ -46,103 +30,149 @@
 @layer base {
   * {
     border-color: hsl(var(--border) / 0.3);
+    border-width: 0;
+    border-style: solid;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    cursor: default;
   }
+
   body {
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
     font-family: var(--font-sans);
-    line-height: 1.6;
-    font-style: normal;
+    overflow-x: hidden;
   }
 
-  /* Structural Global Normalization */
-  h1, h2, h3, h4, h5, h6, p, span, div {
-    font-style: normal !important;
-    text-transform: none !important;
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-sans);
+    letter-spacing: -0.05em;
   }
 
-  h1 {
-    font-size: clamp(3rem, 6vw, 5rem) !important;
-    font-weight: 800 !important;
-    letter-spacing: -0.04em !important;
-    line-height: 1 !important;
-    font-family: var(--font-sans) !important;
+  /* Standardized Links & Interaction */
+  a, button {
+    cursor: pointer;
+    transition: all 0.3s ease;
   }
-
-  h2 {
-    font-size: clamp(2rem, 4vw, 3rem) !important;
-    font-weight: 700 !important;
-    letter-spacing: -0.03em !important;
-    line-height: 1.1 !important;
-    font-family: var(--font-sans) !important;
-  }
-
-  h3 {
-    font-size: clamp(1.25rem, 2vw, 1.75rem) !important;
-    font-weight: 600 !important;
-    letter-spacing: -0.02em !important;
-    line-height: 1.2 !important;
-    font-family: var(--font-sans) !important;
-  }
-
-  p {
-    font-size: 1rem !important;
-    font-weight: 400 !important;
-    letter-spacing: normal !important;
-    line-height: 1.6 !important;
-    color: hsl(var(--foreground) / 0.8) !important;
-  }
-
-  /* Captions */
-  .text-\[10px\], .text-\[11px\], .text-\[8px\], .text-\[9px\], 
-  small, .caption {
-    font-size: 0.875rem !important;
-    font-weight: 500 !important;
-    color: hsl(var(--muted-foreground)) !important;
-    letter-spacing: 0em !important;
-    text-transform: none !important;
+  
+  a:active, button:active {
+    transform: scale(0.95);
   }
 }
 
 @layer utilities {
-  .glass {
-    background: hsla(var(--glass-bg));
+  /* ARCHIVE DESIGN SYSTEM UTILITIES */
+  
+  /* 1. Surfaces */
+  .glass-premium {
+    background-color: hsla(0, 0%, 0%, 0.4);
     backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid hsla(var(--glass-border));
+    border: 1px solid hsla(0, 0%, 100%, 0.05);
   }
+  
   .glass-card {
-    background: hsla(0, 0%, 7%, 0.6);
+    background-color: hsla(0, 0%, 4%, 0.6);
     backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid hsla(0, 0%, 20%, 0.3);
+    border: 1px solid hsla(0, 0%, 100%, 0.05);
+    transition: all 0.5s ease;
   }
-  .live-glow {
-    box-shadow: 0 0 12px 2px hsl(var(--accent) / 0.5);
+  
+  .glass-card:hover {
+    border-color: hsla(0, 0%, 100%, 0.1);
   }
-  .card-hover {
-    transition-property: all;
-    transition-timing-function: cubic-bezier(0, 0, 0.2, 1);
-    transition-duration: 300ms;
+
+  /* 2. Patterns & Overlays */
+  .grid-pattern {
+    background-image: radial-gradient(circle at 1px 1px, hsla(0, 0%, 100%, 0.05) 1px, transparent 0);
+    background-size: 40px 40px;
   }
-  .card-hover:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 40px -10px hsla(0, 0%, 0%, 0.4);
-  }
-  .shadow-luxury {
-    box-shadow: 0 8px 30px rgba(0,0,0,0.3), 0 0 4px rgba(255,255,255,0.03) !important;
-  }
+
+  /* 3. Typography Effects */
   .text-gradient {
-    background: linear-gradient(135deg, hsl(0 0% 100%), hsl(0 0% 70%));
+    background: linear-gradient(to bottom right, #fff 30%, hsla(0, 0%, 100%, 0.4));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
-  .hide-scrollbar::-webkit-scrollbar {
-    display: none;
+
+  /* 4. Lighting & Shadows */
+  .shadow-luxury {
+    box-shadow: 0 8px 32px -4px rgba(0, 0, 0, 0.5), 0 0 1px 0 rgba(255, 255, 255, 0.1);
   }
-  .hide-scrollbar {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
+
+  .accent-glow {
+    filter: drop-shadow(0 0 8px hsla(142, 60%, 45%, 0.4));
   }
+
+  /* 5. Typography System */
+  .hero-title {
+    font-size: clamp(3.5rem, 12vw, 10rem);
+    font-weight: 900;
+    line-height: 0.85;
+    letter-spacing: -0.05em;
+    text-transform: uppercase;
+    font-style: italic;
+  }
+
+  .section-title {
+    font-size: clamp(2rem, 5vw, 4rem);
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.03em;
+    text-transform: uppercase;
+    font-style: italic;
+  }
+
+  .card-title {
+    font-size: 1.25rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+    font-style: italic;
+  }
+
+  .body-text {
+    font-size: 1rem;
+    font-weight: 400;
+    line-height: 1.7;
+    color: hsla(0, 0%, 100%, 0.6);
+  }
+
+  .caption {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: hsla(0, 0%, 100%, 0.3);
+    font-style: italic;
+  }
+}
+
+/* Custom Keyframes for the design system */
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.animate-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.animate-shimmer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.03), transparent);
+  animation: shimmer 2s infinite linear;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.animate-float {
+  animation: float 6s infinite ease-in-out;
 }

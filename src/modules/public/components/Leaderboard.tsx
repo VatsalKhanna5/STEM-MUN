@@ -49,15 +49,22 @@ export default function Leaderboard() {
     try {
       const { data, error: supabaseError } = await supabase
         .from("leaderboard")
-        .select("profile_id, name, image_url, total_score, committee, sector, performance_metric")
+        .select("*")
         .order("total_score", { ascending: false });
 
-      if (supabaseError) throw supabaseError;
+      if (supabaseError) {
+        console.error("Supabase Leaderboard Error:", {
+          message: supabaseError.message,
+          code: supabaseError.code,
+          details: supabaseError.details
+        });
+        throw supabaseError;
+      }
       setEntries(data || []);
       setError(null);
     } catch (err: any) {
-      console.error("Leaderboard Fetch Error:", err);
-      setError("Archive Uplink Interrupted. Attempting Re-sync...");
+      console.error("Full Catch Error:", err);
+      setError(`Archive Uplink Fault: ${err.message || 'Check System Logs'}`);
     } finally {
       setLoading(false);
     }
@@ -125,10 +132,8 @@ export default function Leaderboard() {
       <div className="container mx-auto px-6 max-w-7xl">
         <header className="mb-20 max-w-4xl mx-auto text-center">
           <LiveIndicator label="Live Global Standings" />
-          <h1 className="mt-8 font-display text-5xl md:text-8xl font-black text-foreground tracking-tighter leading-none uppercase italic">
-            Leaderboard
-          </h1>
-          <p className="mt-6 text-white/30 text-lg md:text-xl font-light leading-relaxed max-w-2xl mx-auto uppercase tracking-tighter italic">
+          <h1 className="section-title mt-8 text-white">Leaderboard</h1>
+          <p className="body-text mt-6 text-lg md:text-xl text-center max-w-2xl mx-auto uppercase tracking-tighter italic">
             Live standings of delegate performance across all committees // Updated in real-time.
           </p>
           
@@ -149,7 +154,7 @@ export default function Leaderboard() {
           {/* Rank 2 */}
           {top3[1] && (
             <div className="text-center order-2 md:order-1">
-              <span className="inline-block mb-4 rounded-full border border-border/40 px-6 py-1.5 text-[10px] font-black tracking-[0.3em] uppercase text-muted-foreground italic">
+              <span className="caption inline-block mb-4 rounded-full border border-border/40 px-6 py-1.5">
                 Rank 02
               </span>
               <Link href={`/profile/${top3[1].profile_id}`} className="block">
@@ -166,8 +171,8 @@ export default function Leaderboard() {
                       className="object-cover grayscale opacity-80 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-1000"
                     />
                   </div>
-                  <h3 className="font-display text-xl font-bold text-foreground uppercase italic tracking-tight">{top3[1].name}</h3>
-                  <p className="mt-2 text-[9px] font-black tracking-[0.3em] uppercase text-muted-foreground opacity-60">
+                  <h3 className="card-title text-foreground">{top3[1].name}</h3>
+                  <p className="caption mt-2 opacity-60">
                     {top3[1].committee || "---"} // {top3[1].sector || "---"}
                   </p>
                   <p className="mt-6 font-display text-5xl font-bold text-foreground tabular-nums tracking-tighter italic">

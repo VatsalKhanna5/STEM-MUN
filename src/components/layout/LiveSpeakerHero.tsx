@@ -91,10 +91,10 @@ export default function LiveSpeakerHero() {
       className="w-full max-w-4xl mx-auto mb-20"
     >
       <div className={cn(
-        "relative rounded-[3rem] p-10 md:p-16 overflow-hidden border transition-all duration-1000",
+        "relative rounded-[3rem] p-10 md:p-16 overflow-hidden transition-all duration-1000 glass-card",
         isOvershooting 
-          ? "bg-red-500/10 border-red-500/30 shadow-2xl shadow-red-500/10" 
-          : "bg-white/5 border-white/10 shadow-2xl shadow-accent/5 backdrop-blur-3xl"
+          ? "bg-red-500/10 border-red-500/30 text-red-500" 
+          : "accent-glow"
       )}>
         {/* Background Accents */}
         <div className={cn(
@@ -108,7 +108,7 @@ export default function LiveSpeakerHero() {
             <div className="relative">
               <div className={cn(
                 "w-32 h-32 md:w-40 md:h-40 rounded-full p-1.5 transition-all duration-700",
-                isOvershooting ? "bg-red-500 shadow-giant-red" : "bg-accent shadow-giant-green"
+                isOvershooting ? "bg-red-500" : "bg-accent"
               )}>
                 {session.profiles?.image_url ? (
                   <img src={session.profiles.image_url} className="w-full h-full rounded-full object-cover grayscale" alt="Live" />
