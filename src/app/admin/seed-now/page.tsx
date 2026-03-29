@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { seedJudgesAction, repairSystemStateAction } from "@/modules/admin/actions";
+import { seedDelegatesAction } from "@/modules/admin/delegate_seed";
 import PageLayout from "@/components/layout/PageLayout";
 
 export default function SeedPage() {
@@ -11,10 +12,12 @@ export default function SeedPage() {
   async function runSeed() {
     setSeeding(true);
     const repair = await repairSystemStateAction();
-    const res = await seedJudgesAction();
+    const judges = await seedJudgesAction();
+    const delegates = await seedDelegatesAction();
     const finalResults = [
       { name: "Global System Repair", success: !!repair.success, error: repair.error },
-      ...res
+      { name: "40 Delegate Roster Sync", success: delegates.every(d => d.success), error: delegates.find(d => d.error)?.error },
+      ...judges
     ];
     setResults(finalResults);
     setSeeding(false);
