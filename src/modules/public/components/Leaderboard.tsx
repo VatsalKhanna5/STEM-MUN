@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import LiveIndicator from "@/components/ui/LiveIndicator";
 import GlassCard from "@/components/cards/GlassCard";
 import { Search, ChevronRight, TrendingUp, Activity, Terminal, AlertCircle } from "lucide-react";
+import { getLeaderboard } from "../../admin/actions";
 
 interface LeaderboardEntry {
   profile_id: string;
@@ -47,20 +48,22 @@ export default function Leaderboard() {
   // Throttled fetch to prevent rapid re-renders during peak event spikes
   const fetchLeaderboard = useCallback(async () => {
     try {
-      const { data, error: supabaseError } = await supabase
+      const { success, data, error: actionError } = await getLeaderboard();
+      
+      if (success && data) {
+         setEntries(data);
+         setError(null);
+         return;
+      }
+
+      // Fallback to direct view if action fails
+      const { data: viewData, error: supabaseError } = await supabase
         .from("leaderboard")
         .select("*")
         .order("total_score", { ascending: false });
 
-      if (supabaseError) {
-        console.error("Supabase Leaderboard Error:", {
-          message: supabaseError.message,
-          code: supabaseError.code,
-          details: supabaseError.details
-        });
-        throw supabaseError;
-      }
-      setEntries(data || []);
+      if (supabaseError) throw supabaseError;
+      setEntries(viewData || []);
       setError(null);
     } catch (err: any) {
       console.error("Full Catch Error:", err);

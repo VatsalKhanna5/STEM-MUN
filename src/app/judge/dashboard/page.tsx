@@ -11,8 +11,11 @@ import {
   Minus,
   Plus,
   Terminal,
-  ShieldCheck
+  ShieldCheck,
+  TrendingUp,
+  Activity as ActivityIcon
 } from "lucide-react";
+import { getLeaderboard, getProfileScore } from "@/modules/admin/actions";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import PageLayout from "@/components/layout/PageLayout";
@@ -62,6 +65,7 @@ export default function JudgeDashboardPage() {
   const [speechScore, setSpeechScore] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [profileMetrics, setProfileMetrics] = useState({ totalScore: 0, poiCount: 0, pooCount: 0 });
 
   const router = useRouter();
   const supabase = createClient();
@@ -116,6 +120,19 @@ export default function JudgeDashboardPage() {
     setLoading(false);
   }
 
+  async function fetchProfileMetrics(pid: string) {
+    const { success, data } = await getProfileScore(pid);
+    if (success && data) {
+      setProfileMetrics(data);
+    }
+  }
+
+  useEffect(() => {
+    if (selectedProfileId) {
+      fetchProfileMetrics(selectedProfileId);
+    }
+  }, [selectedProfileId]);
+
   const addScoreEvent = async (type: "POI_GIVEN" | "POI_RECEIVED" | "POO" | "SPEECH", value: number) => {
     if (isSubmitting || !selectedProfileId || !judge || !activeRound) return; 
     
@@ -139,6 +156,7 @@ export default function JudgeDashboardPage() {
         setSpeechScore(0);
         setRemark("");
       }
+      fetchProfileMetrics(selectedProfileId); // Refresh live scores
       setTimeout(() => setShowSuccess(false), 2000);
     }
     setIsSubmitting(false);
@@ -231,8 +249,8 @@ export default function JudgeDashboardPage() {
                         </p>
                       </div>
                       <div className="text-right p-8 bg-card/30 rounded-[2rem] border border-border/10 min-w-[200px]">
-                        <p className="text-[10px] tracking-[0.4em] uppercase text-muted-foreground font-black mb-2 opacity-40">Total Score</p>
-                        <p className="font-display text-6xl font-bold text-foreground tabular-nums tracking-tighter italic">---</p>
+                        <p className="text-[10px] tracking-[0.4em] uppercase text-muted-foreground font-black mb-2 opacity-40">Profile Score</p>
+                        <p className="font-display text-6xl font-bold text-foreground tabular-nums tracking-tighter italic">{profileMetrics.totalScore || "0.0"}</p>
                       </div>
                     </div>
                   </header>
@@ -277,7 +295,10 @@ export default function JudgeDashboardPage() {
                     {/* POI & POO Quick Controls */}
                     <div className="space-y-8">
                       <GlassCard variant="elevated" className="p-8 flex flex-col items-center justify-center gap-6 group hover:border-secondary/20 transition-all">
-                        <p className="text-[10px] font-black tracking-[0.3em] uppercase text-muted-foreground opacity-60">Questions Asked</p>
+                        <div className="flex flex-col items-center">
+                          <p className="text-[10px] font-black tracking-[0.3em] uppercase text-muted-foreground opacity-60">POI Count</p>
+                          <p className="text-3xl font-display font-black text-secondary tabular-nums mt-1">{profileMetrics.poiCount}</p>
+                        </div>
                         <div className="flex items-center gap-8">
                            <button 
                             onClick={() => addScoreEvent("POI_GIVEN", activeConfig.poi_given)} 
@@ -290,7 +311,10 @@ export default function JudgeDashboardPage() {
                       </GlassCard>
 
                       <GlassCard variant="elevated" className="p-8 flex flex-col items-center justify-center gap-6 group hover:border-destructive/20 transition-all">
-                        <p className="text-[10px] font-black tracking-[0.3em] uppercase text-muted-foreground opacity-60">Interruptions</p>
+                        <div className="flex flex-col items-center">
+                          <p className="text-[10px] font-black tracking-[0.3em] uppercase text-muted-foreground opacity-60">POO Penalty</p>
+                          <p className="text-3xl font-display font-black text-destructive tabular-nums mt-1">{profileMetrics.pooCount}</p>
+                        </div>
                         <div className="flex items-center gap-8">
                            <button 
                             onClick={() => addScoreEvent("POO", activeConfig.poo_penalty)} 

@@ -10,6 +10,7 @@ import Link from "next/link";
 import { TrendingUp, Activity, Zap, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { getLeaderboard } from "@/modules/admin/actions";
 
 export default function HomePage() {
   const [teamMembers, setTeamMembers] = useState<{ name: string; role: string; image: string; quote?: string }[]>([]);
@@ -30,14 +31,14 @@ export default function HomePage() {
       // Parallel Fetching for maximum stability and performance
       const [
         { data: state },
-        { data: performers },
+        { success: leaderboardSuccess, data: performers, error: leaderboardError },
         { data: judges },
         { count: delegateCount },
         { count: roundCount },
         { count: eventCount }
       ] = await Promise.all([
         supabase.from('platform_state').select('*').eq('id', 1).maybeSingle(),
-        supabase.from('leaderboard').select('profile_id, name, total_score').limit(5),
+        getLeaderboard(),
         supabase.from('judges').select('name, username, role, image_url, bio').order('created_at', { ascending: true }),
         supabase.from('profiles').select('*', { count: 'exact', head: true }),
         supabase.from('rounds').select('*', { count: 'exact', head: true }),
@@ -45,7 +46,13 @@ export default function HomePage() {
       ]);
 
       if (state) setPlatformState(state);
-      if (performers) setTopPerformers(performers);
+      if (leaderboardSuccess && performers) {
+        setTopPerformers(performers.slice(0, 5));
+      } else {
+        // Fallback to view
+        const { data: fallbackPerformers } = await supabase.from('leaderboard').select('profile_id, name, total_score').limit(5);
+        if (fallbackPerformers) setTopPerformers(fallbackPerformers);
+      }
       if (judges) {
         setTeamMembers(judges.map(j => ({
           name: j.name || j.username,
