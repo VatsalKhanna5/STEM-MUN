@@ -10,6 +10,28 @@ export const metadata: Metadata = {
   icons: {
     icon: "/icon.png",
   },
+  openGraph: {
+    title: "STEM MUN Live Dashboard",
+    description: "Experience real-time scoring and live rankings in a premium STEM MUN environment",
+    url: "https://stem-mun-2026.vercel.app/",
+    siteName: "STEM MUN",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "STEM MUN Dashboard",
+      },
+    ],
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "STEM MUN Live Dashboard",
+    description: "Experience real-time scoring and live rankings in a premium STEM MUN environment",
+    images: ["/og-image.png"],
+  },
 };
 
 export default function RootLayout({

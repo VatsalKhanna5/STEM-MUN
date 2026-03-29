@@ -25,7 +25,7 @@ export default function JudgeLoginPage() {
 
     try {
       const { data, error: loginError } = await supabase.auth.signInWithPassword({
-        email: username.includes('@') ? username : `${username.toLowerCase().trim()}@stem-mun.com`, // Support username login via mock email if needed
+        email: username.includes('@') ? username.toLowerCase().trim() : `${username.toLowerCase().trim()}@stem-mun.com`, // Normalize identifiers to lowercase
         password,
       });
 
