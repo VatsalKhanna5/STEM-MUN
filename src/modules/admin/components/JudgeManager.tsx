@@ -6,6 +6,7 @@ import { Plus, ShieldCheck, Trash2, Loader2, Key, ShieldAlert, Fingerprint, Lock
 import { motion, AnimatePresence } from "framer-motion";
 import GlassCard from "@/components/cards/GlassCard";
 import { cn } from "@/lib/utils";
+import { createJudgeAction, deleteJudgeAction } from "../actions";
 
 interface Judge {
   id: string;
@@ -84,22 +85,17 @@ export default function JudgeManager() {
       finalImageUrl = publicUrlData.publicUrl;
     }
 
-    const newJudge = {
+    const { success: actionSuccess, data: actionData, error: actionError } = await createJudgeAction({
       username: username.toLowerCase().trim(),
       password_hash: password, 
       name: name.trim() || null,
       image_url: finalImageUrl,
       role: role.trim() || null,
       bio: bio.trim() || null,
-    };
+    });
 
-    const { data, error: insertError } = await supabase
-      .from("judges")
-      .insert([newJudge])
-      .select();
-
-    if (!insertError && data) {
-      setJudges([data[0], ...judges]);
+    if (actionSuccess && actionData) {
+      setJudges([actionData, ...judges]);
       setSuccess(true);
       setTimeout(() => {
         setIsAdding(false);
@@ -113,20 +109,20 @@ export default function JudgeManager() {
         setBio("");
       }, 1000);
     } else {
-      setError(insertError?.message || "AUTHORIZATION_FAILURE");
+      setError(actionError || "AUTHORIZATION_FAILURE");
     }
     setAdding(false);
   }
 
   async function handleDeleteJudge(id: string) {
     if(!confirm("Delete this judge?")) return;
-    const { error } = await supabase
-      .from("judges")
-      .delete()
-      .eq("id", id);
+    
+    const { success, error } = await deleteJudgeAction(id);
 
-    if (!error) {
+    if (success) {
       setJudges(judges.filter(j => j.id !== id));
+    } else {
+      alert("Error deleting judge: " + error);
     }
   }
 

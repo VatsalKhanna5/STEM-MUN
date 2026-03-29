@@ -6,6 +6,7 @@ import { Plus, Trash2, User, Loader2, Image as ImageIcon, Search, CheckCircle2, 
 import { motion, AnimatePresence } from "framer-motion";
 import GlassCard from "@/components/cards/GlassCard";
 import { cn } from "@/lib/utils";
+import { deleteDelegateAction } from "../actions";
 
 interface Profile {
   id: string;
@@ -106,13 +107,13 @@ export default function ProfileManager() {
 
   async function handleDeleteProfile(id: string) {
     if(!confirm("Remove this delegate?")) return;
-    const { error } = await supabase
-      .from("profiles")
-      .delete()
-      .eq("id", id);
+    
+    const { success, error } = await deleteDelegateAction(id);
 
-    if (!error) {
+    if (success) {
       setProfiles(profiles.filter(p => p.id !== id));
+    } else {
+      alert("Error deleting delegate: " + error);
     }
   }
 
