@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { seedJudgesAction } from "@/modules/admin/actions";
+import { seedJudgesAction, repairSystemStateAction } from "@/modules/admin/actions";
 import PageLayout from "@/components/layout/PageLayout";
 
 export default function SeedPage() {
@@ -10,8 +10,13 @@ export default function SeedPage() {
 
   async function runSeed() {
     setSeeding(true);
+    const repair = await repairSystemStateAction();
     const res = await seedJudgesAction();
-    setResults(res);
+    const finalResults = [
+      { name: "Global System Repair", success: !!repair.success, error: repair.error },
+      ...res
+    ];
+    setResults(finalResults);
     setSeeding(false);
   }
 
@@ -22,9 +27,9 @@ export default function SeedPage() {
         <button 
           onClick={runSeed}
           disabled={seeding}
-          className="bg-white text-black px-12 py-6 rounded-2xl font-black uppercase tracking-widest hover:scale-110 active-scale disabled:opacity-20 transition-all"
+          className="bg-white text-black px-12 py-6 rounded-2xl font-black uppercase tracking-widest hover:scale-110 active-scale disabled:opacity-20 transition-all border-4 border-accent animate-pulse"
         >
-          {seeding ? "Syncing..." : "Sync All Judges"}
+          {seeding ? "REPAIRING & SYNCING..." : "FIX & SYNC ALL"}
         </button>
 
         <div className="mt-24 space-y-4 max-w-lg mx-auto">

@@ -66,6 +66,7 @@ export default function JudgeDashboardPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [profileMetrics, setProfileMetrics] = useState({ totalScore: 0, poiCount: 0, pooCount: 0 });
+  const [platformState, setPlatformState] = useState<any>(null);
 
   const router = useRouter();
   const supabase = createClient();
@@ -75,12 +76,29 @@ export default function JudgeDashboardPage() {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         fetchData(user.id);
+        
+        // --- REAL-TIME SESSION SYNC ---
+        const channel = supabase.channel('judge-live-sync')
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'platform_state' }, (payload) => {
+            const newState = payload.new as any;
+            setPlatformState(newState);
+            
+            // Auto-follow the active delegate if admin changes it
+            if (newState.is_active && newState.current_speaker_id && newState.current_speaker_type === 'delegate') {
+              setSelectedProfileId(newState.current_speaker_id);
+            }
+          })
+          .subscribe();
+
+        return () => {
+          supabase.removeChannel(channel);
+        };
       } else {
         router.push("/judge/login"); 
       }
     }
     checkAuth();
-  }, [router]);
+  }, [router, supabase]);
 
   async function fetchData(judgeId: string) {
     setLoading(true);
@@ -243,6 +261,11 @@ export default function JudgeDashboardPage() {
                         <p className="text-[10px] tracking-[0.4em] uppercase text-muted-foreground font-black mb-2 opacity-40">Profile Score</p>
                         <p className="font-display text-6xl font-bold text-foreground tabular-nums tracking-tighter italic">{profileMetrics.totalScore || "0.0"}</p>
                       </div>
+                      {platformState?.halt_signal && (
+                        <div className="bg-red-500 text-white px-8 py-4 rounded-xl font-display font-black text-xs uppercase animate-pulse border-4 border-white/20">
+                          HALT SIGNAL ACTIVE
+                        </div>
+                      )}
                     </div>
                   </header>
 

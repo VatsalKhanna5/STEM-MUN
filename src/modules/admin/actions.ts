@@ -199,5 +199,52 @@ export async function seedJudgesAction() {
     const res = await createJudgeAction({ username: j.username, password_hash: j.password, name: j.name, role: j.role });
     results.push({ name: j.name, success: !!res.success, error: res.error });
   }
+
   return results;
+}
+
+export async function repairSystemStateAction() {
+  try {
+    const supabase = createAdminClient();
+    
+    // 1. Ensure platform_state exists
+    const { data: state } = await supabase.from("platform_state").select("*").eq("id", 1).maybeSingle();
+    if (!state) {
+      await supabase.from("platform_state").insert([{ 
+        id: 1, 
+        event_status: 'break',
+        is_active: false,
+        is_paused: false,
+        speaker_duration: 60
+      }]);
+    }
+
+    // 2. Ensure at least one round exists
+    const { data: round } = await supabase.from("rounds").select("*").eq("is_active", true).maybeSingle();
+    if (!round) {
+      const { data: allRounds } = await supabase.from("rounds").select("*").limit(1);
+      if (allRounds && allRounds.length > 0) {
+        await supabase.from("rounds").update({ is_active: true }).eq("id", allRounds[0].id);
+      } else {
+        await supabase.from("rounds").insert([{ name: "ROUND 1", is_active: true }]);
+      }
+    }
+
+    // 3. Ensure scoring config exists
+    const { data: config } = await supabase.from("scoring_config").select("*").limit(1).maybeSingle();
+    if (!config) {
+      await supabase.from("scoring_config").insert([{
+        poi_given: 5,
+        poi_received: 2,
+        poo_penalty: -10,
+        speech_max: 100
+      }]);
+    }
+
+    revalidatePath("/");
+    return { success: true };
+  } catch (err: any) {
+    console.error("Repair Fault:", err);
+    return { error: err.message };
+  }
 }
