@@ -15,7 +15,7 @@ import {
   TrendingUp,
   Activity as ActivityIcon
 } from "lucide-react";
-import { getLeaderboard, getProfileScore } from "@/modules/admin/actions";
+import { getLeaderboard, getProfileScore, getSystemConfig, addScoreEventAction } from "@/modules/admin/actions";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import PageLayout from "@/components/layout/PageLayout";
@@ -97,25 +97,16 @@ export default function JudgeDashboardPage() {
       localStorage.setItem("stem_mun_judge", JSON.stringify(judgeData));
     }
 
-    const { data: roundData } = await supabase
-      .from("rounds")
-      .select("id, name")
-      .eq("is_active", true)
-      .maybeSingle();
-    setActiveRound(roundData);
-
-    const { data: configData } = await supabase
-      .from("scoring_config")
-      .select("poi_given, poi_received, poo_penalty, speech_max")
-      .limit(1)
-      .maybeSingle();
-    setActiveConfig(configData);
-
-    const { data: profileData } = await supabase
-      .from("profiles")
-      .select("*")
-      .order("name", { ascending: true });
-    if (profileData) setProfiles(profileData);
+    // Unified fetch for System Config (Round, Config, Profiles) via Server Action
+    const { success, data, error } = await getSystemConfig();
+    
+    if (success && data) {
+      setActiveRound(data.activeRound);
+      setActiveConfig(data.scoringConfig);
+      setProfiles(data.profiles);
+    } else {
+      console.error("Critical System Data Fetch Fault:", error);
+    }
     
     setLoading(false);
   }
@@ -133,24 +124,21 @@ export default function JudgeDashboardPage() {
     }
   }, [selectedProfileId]);
 
-  const addScoreEvent = async (type: "POI_GIVEN" | "POI_RECEIVED" | "POO" | "SPEECH", value: number) => {
+  const addScoreEvent = async (type: string, value: number) => {
     if (isSubmitting || !selectedProfileId || !judge || !activeRound) return; 
     
     setIsSubmitting(true);
-    const { error } = await supabase
-      .from("score_events")
-      .insert([
-        {
-          profile_id: selectedProfileId,
-          judge_id: judge.id,
-          round_id: activeRound.id,
-          event_type: type,
-          value,
-          remark: remark.trim() || null
-        }
-      ]);
+    
+    const { success, error } = await addScoreEventAction({
+      profile_id: selectedProfileId,
+      judge_id: judge.id,
+      round_id: activeRound.id,
+      event_type: type,
+      value,
+      remark: remark.trim() || null
+    });
 
-    if (!error) {
+    if (success) {
       setShowSuccess(true);
       if (type === "SPEECH") {
         setSpeechScore(0);
@@ -158,6 +146,9 @@ export default function JudgeDashboardPage() {
       }
       fetchProfileMetrics(selectedProfileId); // Refresh live scores
       setTimeout(() => setShowSuccess(false), 2000);
+    } else {
+      console.error("Scoring Upload Fault:", error);
+      alert("Archive Uplink Failed: " + error);
     }
     setIsSubmitting(false);
   };
