@@ -16,13 +16,13 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-12 gap-20">
           {/* Logo & Manifesto Section */}
           <div className="md:col-span-5 space-y-10">
-            <Link href="/" className="flex items-center gap-4 group hover:scale-[0.98] transition-all max-w-fit">
-              <div className="w-12 h-12 rounded-2xl bg-secondary/10 border border-secondary/20 flex items-center justify-center text-secondary group-hover:bg-secondary group-hover:text-background transition-all duration-700">
+            <Link href="/" className="flex items-center gap-4 group hover:scale-[0.98] transition-all max-w-fit active-scale">
+              <div className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-white/40 group-hover:bg-white group-hover:text-black transition-all duration-700 shadow-luxury">
                 <ShieldCheck size={20} />
               </div>
               <div>
-                <h3 className="text-xl font-bold tracking-tighter uppercase italic leading-none text-foreground">STEM MUN</h3>
-                <p className="text-[10px] font-black uppercase tracking-[0.4em] text-muted-foreground/40 mt-1">Version 1.0</p>
+                <h3 className="text-xl font-black tracking-tighter uppercase italic leading-none text-white">THE ARCHIVE</h3>
+                <p className="text-[9px] font-black uppercase tracking-[0.4em] text-white/10 mt-1">Version 1.0</p>
               </div>
             </Link>
             <p className="text-sm font-medium tracking-tight text-muted-foreground leading-relaxed max-w-md italic opacity-60">
@@ -38,11 +38,11 @@ const Footer = () => {
           {/* Quick Uplink Links */}
           <div className="md:col-span-2 space-y-8">
             <h4 className="font-display text-[10px] font-black uppercase tracking-[0.5em] text-foreground italic border-l-2 border-secondary pl-4 leading-none text-foreground">Navigation</h4>
-            <div className="flex flex-col gap-5 text-sm font-bold uppercase tracking-widest italic text-muted-foreground/60 transition-colors">
+            <div className="flex flex-col gap-5 text-sm font-bold uppercase tracking-widest italic text-white/20 transition-colors">
               <FooterLink href="/">Home</FooterLink>
               <FooterLink href="/leaderboard">Leaderboard</FooterLink>
               <FooterLink href="/judge/login">Judge Login</FooterLink>
-              <FooterLink href="/admin">Admin Panel</FooterLink>
+              <FooterLink href="/admin">Archive</FooterLink>
             </div>
           </div>
 
@@ -50,14 +50,14 @@ const Footer = () => {
           <div className="md:col-span-5 space-y-8">
             <h4 className="font-display text-[10px] font-black uppercase tracking-[0.5em] text-foreground italic border-l-2 border-secondary pl-4 leading-none text-foreground">System Status</h4>
             <div className="space-y-6 text-foreground">
-              <div className="flex items-center justify-between p-6 bg-card/20 border border-border/5 rounded-2xl group hover:border-secondary/20 transition-all active-scale">
+              <div className="flex items-center justify-between p-6 bg-white/[0.02] border border-white/5 rounded-2xl group hover:border-accent/20 transition-all active-scale">
                  <div className="flex items-center gap-4">
-                    <div className="w-2 h-2 rounded-full bg-secondary pulse-secondary animate-pulse" />
-                    <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/40 italic">Live Sync</span>
+                    <div className="w-2 h-2 rounded-full bg-accent pulse-accent animate-pulse" />
+                    <span className="text-[10px] font-black uppercase tracking-widest text-white/20 italic">Live Sync</span>
                  </div>
-                 <span className="text-[10px] font-black uppercase tracking-widest text-secondary italic">ONLINE</span>
+                 <span className="text-[10px] font-black uppercase tracking-widest text-accent italic">ONLINE</span>
               </div>
-              <div className="flex items-center justify-between p-6 bg-card/20 border border-border/5 rounded-2xl group hover:border-secondary/20 transition-all active-scale opacity-60">
+              <div className="flex items-center justify-between p-6 bg-white/[0.02] border border-white/5 rounded-2xl group hover:border-white/20 transition-all active-scale opacity-20">
                  <div className="flex items-center gap-4">
                     <Fingerprint size={16} className="text-muted-foreground/20" />
                     <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/40 italic">Security</span>

@@ -67,14 +67,15 @@ export default function JudgeDashboardPage() {
   const supabase = createClient();
 
   useEffect(() => {
-    const session = localStorage.getItem("stem_mun_judge");
-    if (session) {
-      const parsed = JSON.parse(session);
-      setJudge(parsed);
-      fetchData(parsed.id);
-    } else {
-      router.push("/judge/login"); 
+    async function checkAuth() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        fetchData(user.id);
+      } else {
+        router.push("/judge/login"); 
+      }
     }
+    checkAuth();
   }, [router]);
 
   async function fetchData(judgeId: string) {
@@ -353,8 +354,8 @@ export default function JudgeDashboardPage() {
       <div className="fixed bottom-0 left-0 right-0 h-10 glass border-t border-border/10 flex items-center justify-between px-8 z-50 overflow-hidden">
         <div className="flex items-center gap-10">
           <div className="flex items-center gap-3">
-            <div className="w-1.5 h-1.5 rounded-full bg-secondary animate-pulse" />
-            <span className="text-[9px] font-black uppercase tracking-[0.3em] text-secondary italic">System Online</span>
+            <div className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
+            <span className="text-[9px] font-black uppercase tracking-[0.3em] text-accent">System Online</span>
           </div>
           <span className="text-[9px] font-bold tracking-widest text-muted-foreground opacity-40 uppercase font-mono hidden md:block">Latency: 12ms // VERSION 1.0</span>
         </div>

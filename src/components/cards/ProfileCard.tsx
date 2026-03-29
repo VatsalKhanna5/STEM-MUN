@@ -34,7 +34,7 @@ const ProfileCard = ({ delegate, selected, onClick }: ProfileCardProps) => {
           loading="lazy"
         />
         {delegate.status === "speaking" && (
-          <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-secondary border-2 border-background live-glow" />
+          <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-accent border-2 border-background live-glow" />
         )}
       </div>
       <div className="flex-1 min-w-0">

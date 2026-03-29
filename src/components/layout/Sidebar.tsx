@@ -24,8 +24,8 @@ export default function Sidebar() {
   return (
     <aside className="hidden md:flex flex-col py-8 px-4 gap-y-6 h-full w-64 border-r border-[#474747]/15 bg-[#131313] font-body font-light tracking-wide shrink-0">
       <div className="px-4 mb-8">
-        <div className="text-lg font-black tracking-widest text-white font-headline italic uppercase">ADMIN</div>
-        <div className="text-[10px] text-on-surface/40 tracking-[0.2em] uppercase font-bold">STEM MUN v1.0</div>
+        <div className="text-lg font-black tracking-tighter text-white uppercase italic">THE ARCHIVE</div>
+        <div className="text-[10px] text-muted-foreground opacity-40 uppercase font-bold">Protocol v1.0</div>
       </div>
       
       <nav className="flex-1 space-y-2">

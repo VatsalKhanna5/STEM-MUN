@@ -19,7 +19,7 @@ const PageLayout: React.FC<PageLayoutProps> = ({ children }) => {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
           transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-          className="flex-grow pt-32 pb-24"
+          className="flex-grow"
         >
           {children}
         </motion.main>

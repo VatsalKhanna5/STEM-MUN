@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { motion } from "framer-motion";
 import PageLayout from "@/components/layout/PageLayout";
@@ -23,25 +24,24 @@ export default function JudgeLoginPage() {
     setError("");
 
     try {
-      const { data, error: fetchError } = await supabase
-        .from("judges")
-        .select("*")
-        .eq("username", username.toLowerCase().trim())
-        .eq("password_hash", password) // Simple plain-text comparison as requested
-        .single();
+      const { data, error: loginError } = await supabase.auth.signInWithPassword({
+        email: username.includes('@') ? username : `${username.toLowerCase().trim()}@stem-mun.com`, // Support username login via mock email if needed
+        password,
+      });
 
-      if (fetchError || !data) {
-        throw new Error("Invalid credentials.");
+      if (loginError) throw loginError;
+
+      // Detect role and divert
+      const user = data.user;
+      const role = user?.app_metadata?.role;
+
+      if (role === 'admin') {
+        router.push("/admin");
+      } else {
+        router.push("/judge/dashboard");
       }
-
-      localStorage.setItem("stem_mun_judge", JSON.stringify({
-        id: data.id,
-        username: data.username
-      }));
-
-      router.push("/judge/dashboard");
     } catch (err: any) {
-      setError(err.message);
+      setError(err.message || "Invalid credentials.");
     } finally {
       setLoading(false);
     }
@@ -60,27 +60,36 @@ export default function JudgeLoginPage() {
            initial={{ opacity: 0, scale: 0.95, y: 20 }}
            animate={{ opacity: 1, scale: 1, y: 0 }}
            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-           className="w-full max-w-md relative z-10 flex flex-col gap-8"
+           className="w-full max-w-md relative z-10 flex flex-col gap-6"
         >
-          {/* Back Navigation */}
-          <button 
-            onClick={() => router.back()}
-            className="self-start flex items-center gap-3 text-[10px] font-black tracking-[0.3em] uppercase text-muted-foreground hover:text-foreground transition-all active-scale group"
-          >
-            <ArrowRight className="w-4 h-4 rotate-180 group-hover:-translate-x-1 transition-transform" />
-            <span>Go Back</span>
-          </button>
-          <GlassCard variant="glass" className="p-12 md:p-16 border-border/10 shadow-2xl space-y-12">
-            <header className="flex flex-col items-center gap-8 text-center">
-              <div className="w-20 h-20 rounded-3xl bg-secondary/10 border border-secondary/20 flex items-center justify-center shadow-luxury transition-transform duration-700 hover:rotate-[10deg] cursor-pointer">
-                <Fingerprint size={32} className="text-secondary" />
+          {/* Navigation Controls */}
+          <div className="flex items-center justify-between px-2">
+            <button 
+              onClick={() => router.back()}
+              className="flex items-center gap-3 text-[10px] font-black tracking-[0.3em] uppercase text-white/20 hover:text-white transition-all active-scale group"
+            >
+              <ArrowRight className="w-4 h-4 rotate-180 group-hover:-translate-x-1 transition-transform" />
+              <span>Back</span>
+            </button>
+            <Link 
+              href="/"
+              className="text-[10px] font-black tracking-[0.3em] uppercase text-white/20 hover:text-white transition-all active-scale"
+            >
+              Home
+            </Link>
+          </div>
+
+          <GlassCard variant="glass" className="p-10 md:p-12 border-white/5 shadow-luxury space-y-10">
+            <header className="flex flex-col items-center gap-6 text-center">
+              <div className="w-16 h-16 rounded-3xl bg-white/5 border border-white/10 flex items-center justify-center shadow-luxury transition-transform duration-700 hover:rotate-6 cursor-pointer group">
+                <Fingerprint size={24} className="text-white/40 group-hover:text-white transition-colors" />
               </div>
-              <div className="space-y-4">
-                <h1 className="font-display text-4xl font-bold tracking-tighter uppercase italic leading-none text-foreground">
-                  Judge Login
+              <div className="space-y-2">
+                <h1 className="font-sans text-3xl font-black tracking-tighter uppercase italic leading-none text-white">
+                  The Archive
                 </h1>
-                <p className="text-[10px] font-black uppercase tracking-[0.4em] text-muted-foreground opacity-40 italic">
-                  Scoring Platform Access
+                <p className="text-[9px] font-bold uppercase tracking-[0.4em] text-white/20 italic">
+                  Authorization Required
                 </p>
               </div>
             </header>
